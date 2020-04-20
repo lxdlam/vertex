@@ -1,9 +1,13 @@
-package types
+package types_test
 
 import (
 	"math/rand"
 	"testing"
 	"time"
+
+	"github.com/stretchr/testify/assert"
+
+	. "github.com/lxdlam/vertex/pkg/types"
 )
 
 type testCase struct {
@@ -101,7 +105,7 @@ func testInsertAndGet(m DataMap, tests []testCase, t *testing.T) bool {
 			return false
 		}
 
-		if val, ok := m.Get(tc.key); !ok || val != tc.value {
+		if val, ok := m.Get(tc.key); !ok || !assert.Equal(t, val, tc.value) {
 			t.Errorf("Get failed. key=%s, value=%+v", tc.key, tc.value)
 			return false
 		}

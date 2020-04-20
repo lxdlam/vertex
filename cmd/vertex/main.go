@@ -2,14 +2,48 @@ package main
 
 import (
 	"fmt"
-
-	"github.com/lxdlam/vertex/cmd/vertex/internal"
+	"time"
 )
 
+const banner string = `
+===================================================================
+|                                                                 |
+| '##::::'##:'########:'########::'########:'########:'##::::'##: |
+|  ##:::: ##: ##.....:: ##.... ##:... ##..:: ##.....::. ##::'##:: |
+|  ##:::: ##: ##::::::: ##:::: ##:::: ##:::: ##::::::::. ##'##::: |
+|  ##:::: ##: ######::: ########::::: ##:::: ######:::::. ###:::: |
+| . ##:: ##:: ##...:::: ##.. ##:::::: ##:::: ##...:::::: ## ##::: |
+| :. ## ##::: ##::::::: ##::. ##::::: ##:::: ##:::::::: ##:. ##:: |
+| ::. ###:::: ########: ##:::. ##:::: ##:::: ########: ##:::. ##: |
+| :::...:::::........::..:::::..:::::..:::::........::..:::::..:: |
+|                                                                 |
+|   A Go implementation of Redis.     lxdlam(lxdlam@gmail.com)    |
+|   Get the latest version at https://github.com/lxdlam/vertex    |
+|                                                                 |
+===================================================================
+`
+
+func receive(ch chan bool, id int) {
+	for {
+		select {
+		case val := <-ch:
+			fmt.Printf("Gorountine %d received %v from channel.\n", id, val)
+			return
+		}
+	}
+}
+
 func main() {
-	internal.ParseFlags()
-	fmt.Println(internal.Verbose)
-	fmt.Println(internal.Debug)
-	fmt.Println(internal.ConfPath)
-	fmt.Println("Welcome to Vertex Server!")
+	// fmt.Println(banner)
+
+	ch := make(chan bool)
+
+	for i := 0; i < 10; i++ {
+		go receive(ch, i)
+	}
+
+	ch <- true
+	close(ch)
+
+	time.Sleep(1 * time.Second)
 }
