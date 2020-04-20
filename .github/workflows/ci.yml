@@ -18,4 +18,4 @@ jobs:
         uses: actions/checkout@v2
 
       - name: Test
-        run: go clean -testcache && go test ./... -count 20
+        run: go clean -testcache && go test ./... -count 10
