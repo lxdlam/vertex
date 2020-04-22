@@ -9,21 +9,20 @@ var (
 	// ErrCancelled will happen when invoke access functions on a cancelled future
 	ErrCancelled = errors.New("future: The future has already been cancelled")
 
-	// ErrFullfilled will happen when invoke cancel function on a fullfilled future
-	ErrFullfilled = errors.New("future: The future has already fullfilled")
+	// ErrFulfilled will happen when invoke cancel function on a fulfilled future
+	ErrFulfilled = errors.New("future: The future has already fulfilled")
 
 	// ErrTimeout will happen when waiting a future reaches the timeout
-	ErrTimeout = errors.New("future: wating time out")
+	ErrTimeout = errors.New("future: waiting time out")
 )
 
-// Future is a simple gorountine wrapper for some async works.
+// Future is a simple goroutine wrapper for some async works.
 //
-// The terminology is same as futures in C++ or Rust.
-// Only interface will be exported, no implementation will be export.
+// The terminology Future is same as futures in C++ or Rust, provides cancel and wait operations to control the task.
 type Future interface {
 	// Cancel a Future, error will be raised if:
 	// - The future has already been cancelled
-	// - The future has already fullfille
+	// - The future has already been fulfilled
 	Cancel() error
 
 	// Get the value of the future mission, will blocking until the task is finished.
@@ -31,9 +30,9 @@ type Future interface {
 	// Otherwise the result and the error raised by the task will return.
 	Get() (interface{}, error)
 
-	// Wait until the future will be fullfilled.
+	// Wait until the future will be fulfilled.
 	// If the future has already fulfilled, the wait will return immediately.
-	// If the Cancel() has been invoked when wating, an error will be returned.
+	// If the Cancel() has been invoked when waiting, an error will be returned.
 	Wait() error
 
 	// WaitFor works like the wait but will timeout when reach the given time duration.
@@ -42,7 +41,7 @@ type Future interface {
 }
 
 type future struct {
-	fn         func() (interface{}, error)
+	task       Task
 	result     interface{}
 	err        error
 	doneChan   chan struct{}
@@ -51,9 +50,9 @@ type future struct {
 
 // NewFuture will start a new future with the given function.
 // The function will be invoked immediately when successfully created.
-func NewFuture(fn func() (interface{}, error)) Future {
+func NewFuture(task Task) Future {
 	fut := &future{
-		fn:         fn,
+		task:       task,
 		result:     nil,
 		err:        nil,
 		doneChan:   make(chan struct{}),
@@ -65,16 +64,9 @@ func NewFuture(fn func() (interface{}, error)) Future {
 	return fut
 }
 
-// NewFutureWithoutError receives a function that gives no error.
-func NewFutureWithoutError(fn func() interface{}) Future {
-	return NewFuture(func() (interface{}, error) {
-		return fn(), nil
-	})
-}
-
 func (f *future) start() {
 	go func() {
-		f.result, f.err = f.fn()
+		f.result, f.err = f.task.Run()
 		select {
 		// Already cancelled, leaves the doneChan open
 		case <-f.cancelChan:
@@ -88,7 +80,7 @@ func (f *future) start() {
 func (f *future) Cancel() error {
 	select {
 	case <-f.doneChan:
-		return ErrFullfilled
+		return ErrFulfilled
 	case <-f.cancelChan:
 		return ErrCancelled
 	default:

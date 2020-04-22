@@ -3,7 +3,7 @@ package concurrency
 // BroadCaster is a simple message wrapper.
 //
 // It provides the semantic for 1 to M message consumers, no error will be produced.
-// It's gorountine safe but a one shot message producer which means multiple set will make the value unreliable.
+// It's goroutine safe but a one shot message producer which means multiple set will make the value unreliable.
 type BroadCaster interface {
 	// Set the message, set a nil value also makes sense.
 	Set(interface{})

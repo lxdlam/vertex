@@ -17,7 +17,7 @@ func TestBroadCast(t *testing.T) {
 			item := bc.Get()
 
 			if !assert.Equal(t, msg, item) {
-				t.Fatalf("Gorountine %d received wrong message, got=%+v", id, item)
+				t.Fatalf("Goroutine %d received wrong message, got=%+v", id, item)
 			}
 		}(i)
 	}
@@ -29,7 +29,7 @@ func TestBroadCast(t *testing.T) {
 			item := bc.Get()
 
 			if !assert.Equal(t, msg, item) {
-				t.Fatalf("Gorountine %d received wrong message, got=%+v", id, item)
+				t.Fatalf("Goroutine %d received wrong message, got=%+v", id, item)
 			}
 		}(i + 101)
 	}

@@ -12,18 +12,18 @@ import (
 )
 
 var (
-	testError     = errors.New("TestError")
-	shortTime     = 100 * time.Millisecond
-	longTime      = 1 * time.Second
-	maxGorountine = 10
+	testError    = errors.New("TestError")
+	shortTime    = 100 * time.Millisecond
+	longTime     = 1 * time.Second
+	maxGoroutine = 10
 )
 
 // The only test for WithoutErrorFuture
 func TestNoErrorFutureGet(t *testing.T) {
-	fut := NewFutureWithoutError(func() interface{} {
+	fut := NewFuture(NewNoErrorTask(func() interface{} {
 		time.Sleep(shortTime)
 		return 1
-	})
+	}))
 
 	if !testGet(t, fut, 1, nil) {
 		t.Fatalf("Fail at first get.")
@@ -31,6 +31,20 @@ func TestNoErrorFutureGet(t *testing.T) {
 
 	// Multiple get should be same
 	if !testGet(t, fut, 1, nil) {
+		t.Fatalf("Fail at second get.")
+	}
+}
+
+// The only test for ErrorFuture
+func TestErrorFutureGet(t *testing.T) {
+	fut := NewFuture(NewErrorTask(testError))
+
+	if !testGet(t, fut, nil, testError) {
+		t.Fatalf("Fail at first get.")
+	}
+
+	// Multiple get should be same
+	if !testGet(t, fut, nil, testError) {
 		t.Fatalf("Fail at second get.")
 	}
 }
@@ -89,16 +103,16 @@ func TestFutureCancel(t *testing.T) {
 		t.Fatalf("The wait for call should return ErrCancelled, got=%+v", err)
 	}
 
-	fut = NewFuture(func() (interface{}, error) {
+	fut = NewFuture(NewTask(func() (interface{}, error) {
 		time.Sleep(shortTime)
 
 		return 1, nil
-	})
+	}))
 
-	fut.Wait()
+	_ = fut.Wait()
 
 	err = fut.Cancel()
-	if !assert.Equal(t, ErrFullfilled, err) {
+	if !assert.Equal(t, ErrFulfilled, err) {
 		t.Fatalf("Cancel a fullfilled future should return ErrCancelled, got=%+v", err)
 	}
 
@@ -117,12 +131,12 @@ func TestCancelAndFullfilConflict(t *testing.T) {
 	// The first case, cancel it ASAP, then check if it's reporting the ErrCancelled
 	wg.Add(1)
 
-	fut := NewFuture(func() (interface{}, error) {
+	fut := NewFuture(NewTask(func() (interface{}, error) {
 		time.Sleep(shortTime)
 
 		defer wg.Done()
 		return 1, nil
-	})
+	}))
 
 	err := fut.Cancel()
 	if !assert.Nil(t, err) {
@@ -139,18 +153,18 @@ func TestCancelAndFullfilConflict(t *testing.T) {
 		}
 	}
 
-	// Then the second case, just wating for the task finish, then cancel should return ErrFullfilled
-	fut = NewFuture(func() (interface{}, error) {
+	// Then the second case, just waiting for the task finish, then cancel should return ErrFullfilled
+	fut = NewFuture(NewTask(func() (interface{}, error) {
 		time.Sleep(shortTime)
 
 		return 1, nil
-	})
+	}))
 
-	fut.Wait()
+	_ = fut.Wait()
 
 	for i := 0; i < 10; i++ {
 		err = fut.Cancel()
-		if !assert.Equal(t, ErrFullfilled, err) {
+		if !assert.Equal(t, ErrFulfilled, err) {
 			t.Fatalf("Cancel a fullfilled future should return ErrCancelled, got=%+v", err)
 		}
 	}
@@ -164,7 +178,7 @@ func TestWaitFor(t *testing.T) {
 		t.Fatalf("WaitFor reaches time limit should return ErrTimeout, got=%+v", err)
 	}
 
-	fut.Wait()
+	_ = fut.Wait()
 
 	err = fut.WaitFor(shortTime)
 	if !assert.Nil(t, err) {
@@ -172,10 +186,10 @@ func TestWaitFor(t *testing.T) {
 	}
 }
 
-func TestGetMultipleGorountine(t *testing.T) {
+func TestGetMultipleGoroutine(t *testing.T) {
 	fut := newFuture(1, nil, longTime)
 
-	for i := 0; i < maxGorountine; i++ {
+	for i := 0; i < maxGoroutine; i++ {
 		go func() {
 			if !testGet(t, fut, 1, nil) {
 				t.Fatalf("Fail at get.")
@@ -184,10 +198,10 @@ func TestGetMultipleGorountine(t *testing.T) {
 	}
 }
 
-func TestCancelMultipleGorountine(t *testing.T) {
+func TestCancelMultipleGoroutine(t *testing.T) {
 	fut := newFuture(1, nil, longTime)
 
-	for i := 0; i < maxGorountine; i++ {
+	for i := 0; i < maxGoroutine; i++ {
 		go func() {
 			if !testGet(t, fut, nil, ErrCancelled) {
 				t.Fatalf("Fail at get.")
@@ -222,10 +236,10 @@ func TestCancelMultipleGorountine(t *testing.T) {
 	}
 }
 
-func TestWaitForMultipleGorountine(t *testing.T) {
+func TestWaitForMultipleGoroutine(t *testing.T) {
 	fut := newFuture(1, nil, longTime*2)
 
-	for i := 0; i < maxGorountine; i++ {
+	for i := 0; i < maxGoroutine; i++ {
 		go func() {
 			err := fut.WaitFor(shortTime)
 			if !assert.Equal(t, ErrTimeout, err) {
@@ -241,9 +255,9 @@ func TestWaitForMultipleGorountine(t *testing.T) {
 		}()
 	}
 
-	fut.Wait()
+	_ = fut.Wait()
 
-	for i := 0; i < maxGorountine; i++ {
+	for i := 0; i < maxGoroutine; i++ {
 		go func() {
 			err := fut.WaitFor(shortTime)
 			if !assert.Nil(t, err) {
@@ -261,10 +275,10 @@ func TestWaitForMultipleGorountine(t *testing.T) {
 }
 
 func newFuture(value interface{}, err error, d time.Duration) Future {
-	return NewFuture(func() (interface{}, error) {
+	return NewFuture(NewTask(func() (interface{}, error) {
 		time.Sleep(d)
 		return value, err
-	})
+	}))
 }
 
 func testGet(t *testing.T, fut Future, expected_value interface{}, expected_error error) bool {

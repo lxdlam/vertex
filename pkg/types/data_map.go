@@ -142,7 +142,7 @@ func (sdm *SyncDataMap) Has(key string) bool {
 func (sdm *SyncDataMap) Remove(key string) {
 	if sdm.Has(key) {
 		sdm.container.Delete(key)
-		atomic.StoreInt32(&sdm.size, atomic.LoadInt32(&sdm.size)-1)
+		atomic.AddInt32(&sdm.size, -1)
 	}
 }
 
