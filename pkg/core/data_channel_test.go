@@ -88,7 +88,7 @@ func TestDataChannelConcurrentSendReceive(t *testing.T) {
 }
 
 func TestDataChannelSendAndReceiveClosed(t *testing.T) {
-	r, s := NewDataChannel()
+	r, s := NewDataChannelWithOption(0, time.Second)
 	var wg sync.WaitGroup
 	wg.Add(2)
 
@@ -112,7 +112,7 @@ func TestDataChannelSendAndReceiveClosed(t *testing.T) {
 }
 
 func TestDataBufferedChannelSendClosed(t *testing.T) {
-	r, s := NewDataChannelWithOption(10, DefaultExpireTime)
+	r, s := NewDataChannelWithOption(10, time.Second)
 	var wg sync.WaitGroup
 	wg.Add(2)
 
