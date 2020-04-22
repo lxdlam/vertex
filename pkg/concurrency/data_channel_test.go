@@ -1,4 +1,4 @@
-package core_test
+package concurrency_test
 
 import (
 	"math/rand"
@@ -9,7 +9,7 @@ import (
 
 	"github.com/stretchr/testify/assert"
 
-	. "github.com/lxdlam/vertex/pkg/core"
+	. "github.com/lxdlam/vertex/pkg/concurrency"
 )
 
 type int64Slice []int64

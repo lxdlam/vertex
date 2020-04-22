@@ -1,4 +1,4 @@
-package core
+package concurrency
 
 import (
 	"errors"
@@ -16,11 +16,15 @@ const (
 	DefaultExpireTime = 10 * time.Millisecond
 )
 
-type SendResult int
-
 const (
-	Success SendResult = iota
+	// Success means the event is successfully delivered
+	Success int = iota
+
+	// Closed means the receiver has closed the channel
 	Closed
+
+	// Expired means the sender waits too long and reaches the time limit,
+	// then the event will be dropped.
 	Expired
 )
 
@@ -47,7 +51,7 @@ type Sender interface {
 	// - Closed if you're sending to a closed channel
 	// - Expired if you reached the time limit
 	// - Otherwise success
-	Send(Event) SendResult
+	Send(Event) int
 }
 
 type receiver struct {
@@ -82,7 +86,7 @@ func NewDataChannel() (Receiver, Sender) {
 	return r, s
 }
 
-// NewDataChannelWithOption will return a DataChannel with the given options.
+// NewDataChannelWithOption will return a DataChannel with the given options
 // If the size is less or equal 0, the buffer size will be infinity. You can use DefaultExpireTime to set the second one.
 func NewDataChannelWithOption(size int, expireTime time.Duration) (Receiver, Sender) {
 	var dc chan Event
@@ -124,7 +128,7 @@ func (r *receiver) Close() {
 	}
 }
 
-func (s *sender) Send(event Event) SendResult {
+func (s *sender) Send(event Event) int {
 	select {
 	case <-s.closeChannel:
 		return Closed

@@ -1,11 +1,11 @@
-package core
+package concurrency
 
 import (
 	"errors"
-	"github.com/lxdlam/vertex/pkg/common"
-	"github.com/lxdlam/vertex/pkg/concurrency"
 	"sync"
 	"sync/atomic"
+
+	"github.com/lxdlam/vertex/pkg/common"
 )
 
 var (
@@ -13,19 +13,20 @@ var (
 	ErrTopicRemoved = errors.New("topic: topic has been removed")
 )
 
-// Topic
+// Topic is a self contained event center, all event has the same topic will be published here.
 type Topic interface {
 	// Subscriber will return a new Receiver and register the Sender to itself.
 	Subscribe(string) Receiver
 
 	// Publish will distribute all Events to the registered Sender.
 	// When distributing, it will start goroutines and wait them to expire.
-	Publish(Event) concurrency.Future
+	Publish(Event) Future
 
 	// Remove will do tht send work when the removing the topic from data bus.
 	Remove()
 }
 
+// NewTopic will return a new topic with the given name
 func NewTopic(name string) Topic {
 	return &topic{
 		name: name,
@@ -43,10 +44,10 @@ func (t *topic) Subscribe(name string) Receiver {
 	return r
 }
 
-func (t *topic) Publish(e Event) (fut concurrency.Future) {
+func (t *topic) Publish(e Event) (fut Future) {
 	ch := make(chan int32, 1)
 
-	fut = concurrency.NewFuture(concurrency.NewTask(func() (interface{}, error) {
+	fut = NewFuture(NewTask(func() (interface{}, error) {
 		return <-ch, nil
 	}))
 

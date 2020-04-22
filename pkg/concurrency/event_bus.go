@@ -1,11 +1,11 @@
-package core
+package concurrency
 
 import (
 	"errors"
-	"github.com/lxdlam/vertex/pkg/concurrency"
-	"github.com/lxdlam/vertex/pkg/util"
 	"sync"
 	"time"
+
+	"github.com/lxdlam/vertex/pkg/util"
 )
 
 const (
@@ -69,7 +69,7 @@ func NewEvent(topic string, data interface{}) Event {
 	return NewEventWithSource(topic, anonymousSource, data)
 }
 
-// NewEvent will return a new event instance with the given source
+// NewEventWithSource will return a new event instance with the given source
 func NewEventWithSource(topic, source string, data interface{}) Event {
 	return &event{
 		id:     util.GenNewUUID(),
@@ -83,10 +83,13 @@ func NewEventWithSource(topic, source string, data interface{}) Event {
 // EventBus is a channel based, goroutine safe event distribute util
 type EventBus interface {
 	// Publish will send a Event to the specific topic, returns a future immediately:
-	// - If success, the future will be (true, nil)
-	// - Otherwise the future will return false and the err will be set.
+	// - If success, the future will return the number of successfully delivered receivers
+	// - Otherwise the err will be set.
 	// The source of Publish will be "anonymous"
-	Publish(string, Event) concurrency.Future
+	Publish(string, interface{}) Future
+
+	// PublishWithSource will publish a event with a specific source. It works same as Publish.
+	PublishWithSource(string, string, interface{}) Future
 
 	// Subscribe will get a receiver of the corresponding topic.
 	// If no topic with the given name, the error will be ErrNoSuchTopic.
@@ -109,26 +112,44 @@ type eventBus struct {
 	topics map[string]Topic
 }
 
-func (e *eventBus) Publish(name string, event Event) concurrency.Future {
+func (e *eventBus) Publish(name string, data interface{}) Future {
 	e.mutex.RLock()
 	defer e.mutex.RUnlock()
 
-	if topic, ok := e.topics[name]; !ok {
-		return concurrency.NewFuture(concurrency.NewErrorTask(ErrNoSuchTopic))
-	} else {
-		return topic.Publish(event)
+	topic, ok := e.topics[name]
+
+	if !ok {
+		return NewFuture(NewErrorTask(ErrNoSuchTopic))
 	}
+
+	return topic.Publish(NewEvent(name, data))
 }
 
-func (e *eventBus) Subscribe(topic string, subscriber string) (Receiver, error) {
+func (e *eventBus) PublishWithSource(name, source string, data interface{}) Future {
 	e.mutex.RLock()
 	defer e.mutex.RUnlock()
 
-	if topic, ok := e.topics[topic]; !ok {
-		return nil, ErrNoSuchTopic
-	} else {
-		return topic.Subscribe(subscriber), nil
+	topic, ok := e.topics[name]
+
+	if !ok {
+		return NewFuture(NewErrorTask(ErrNoSuchTopic))
 	}
+
+	return topic.Publish(NewEventWithSource(name, source, data))
+}
+
+func (e *eventBus) Subscribe(name string, subscriber string) (Receiver, error) {
+	e.mutex.RLock()
+	defer e.mutex.RUnlock()
+
+	topic, ok := e.topics[name]
+
+	if !ok {
+		return nil, ErrNoSuchTopic
+	}
+
+	return topic.Subscribe(subscriber), nil
+
 }
 
 func (e *eventBus) NewTopic(name string) bool {
