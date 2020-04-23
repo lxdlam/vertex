@@ -174,7 +174,7 @@ func TestMultipleSendCloseSafety(t *testing.T) {
 }
 
 func TestExpiredSend(t *testing.T) {
-	r, s := NewDataChannelWithOption(0, 10*time.Microsecond)
+	r, s := NewDataChannelWithOption(0, 1*time.Millisecond)
 
 	var wg sync.WaitGroup
 	wg.Add(1)

@@ -21,7 +21,7 @@ func (r *respReader) nextToken() error {
 	var buf bytes.Buffer
 
 	for {
-		cur, err := r.reader.ReadString('\n')
+		cur, err := r.reader.ReadString(delimiter)
 
 		if err != nil {
 			return fmt.Errorf("read token failed. buf=%s, err={%w}", buf.String(), err)
