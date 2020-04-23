@@ -119,31 +119,21 @@ func TestDataBufferedChannelSendClosed(t *testing.T) {
 	ch := make(chan struct{})
 
 	go func() {
-		time.Sleep(150 * time.Millisecond)
+		<-ch
 		r.Close()
-		close(ch)
 		wg.Done()
 	}()
 
 	go func() {
-		counter := 0
-	outer:
-		for {
-			select {
-			case <-ch:
-				break outer
-			case <-time.After(10 * time.Millisecond):
-				status := s.Send(newEvent(15))
-				if counter < 10 {
-					// In a buffered data channel, the first 10 event will be sent immediately
-					counter += 1
-					assert.Equal(t, Success, status)
-				} else {
-					// But the 11th will fail
-					assert.Equal(t, Closed, status)
-				}
-			}
+		for i := 0; i < 10; i++ {
+			status := s.Send(newEvent(15))
+			assert.Equal(t, Success, status)
 		}
+
+		close(ch)
+
+		status := s.Send(newEvent(15))
+		assert.Equal(t, Closed, status)
 
 		wg.Done()
 	}()
