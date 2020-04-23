@@ -117,9 +117,7 @@ func (r *receiver) Receive() (Event, error) {
 		return nil, ErrChannelClosed
 	}
 
-	e := <-r.dataChannel
-
-	return e, nil
+	return <-r.dataChannel, nil
 }
 
 func (r *receiver) Close() {

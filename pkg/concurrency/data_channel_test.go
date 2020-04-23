@@ -30,23 +30,41 @@ func newEvent(data interface{}) Event {
 	return NewEvent("dummy", data)
 }
 
+func genTestData(size int) []int64 {
+	rand.Seed(time.Now().UnixNano())
+
+	var result []int64
+	vis := make(map[int64]bool)
+	for i := 0; i < size; i++ {
+		var num int64
+		for {
+			num = rand.Int63()
+			if _, ok := vis[num]; !ok {
+				vis[num] = true
+				result = append(result, num)
+				break
+			}
+		}
+	}
+
+	return result
+}
+
 func TestDataChannelConcurrentSendReceive(t *testing.T) {
 	r, s := NewDataChannel()
 	var expectedSlice, actualSlice int64Slice
 	var wg sync.WaitGroup
+
+	data := genTestData(100)
 	wg.Add(2)
 
 	// Receive side
 	go func() {
-		for {
+		for i := 0; i < 100; i++ {
 			if val, err := r.Receive(); err != nil {
 				t.Fatalf("receive failed, err=%v", err)
 			} else {
 				actualSlice = append(actualSlice, val.Data().(int64))
-			}
-
-			if len(actualSlice) == 10000 {
-				break
 			}
 		}
 
@@ -55,25 +73,14 @@ func TestDataChannelConcurrentSendReceive(t *testing.T) {
 
 	// Send side
 	go func() {
-		vis := make(map[int64]bool)
-		rand.Seed(time.Now().UnixNano())
-
-		for i := 0; i < 10000; i++ {
-			var num int64
-			for {
-				num = rand.Int63()
-				if _, ok := vis[num]; !ok {
-					vis[num] = true
-					break
-				}
-			}
+		for _, num := range data {
+			go func(sl int, n int64) {
+				time.Sleep(time.Duration(sl) * time.Microsecond)
+				status := s.Send(newEvent(n))
+				assert.Equal(t, Success, status)
+			}(rand.Intn(10)+1, num)
 
 			expectedSlice = append(expectedSlice, num)
-
-			go func(sl int, n int64) {
-				time.Sleep(time.Duration(sl) * time.Millisecond)
-				s.Send(newEvent(n))
-			}(rand.Intn(100)+1, num)
 		}
 
 		wg.Done()
@@ -175,10 +182,10 @@ func TestExpiredSend(t *testing.T) {
 
 	go func() {
 		status := s.Send(newEvent(15))
-		assert.Equal(t, status, Expired)
+		assert.Equal(t, Expired, status)
 		<-ch
 		status = s.Send(newEvent(15))
-		assert.Equal(t, status, Closed)
+		assert.Equal(t, Closed, status)
 
 		wg.Done()
 	}()
