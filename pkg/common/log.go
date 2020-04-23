@@ -89,50 +89,70 @@ func checkAndSync() {
 
 // Debug will generate a new log into to the logger
 func Debug(log string) {
-	logger.Debug(log)
+	if logger != nil {
+		logger.Debug(log)
+	}
 }
 
 // Debugf works like Printf and works same as Debug
 func Debugf(template string, a ...interface{}) {
-	logger.Debugf(template, a)
+	if logger != nil {
+		logger.Debugf(template, a)
+	}
 }
 
 // Info will generate a new log into to the logger
 func Info(log string) {
-	logger.Info(log)
+	if logger != nil {
+		logger.Info(log)
+	}
 }
 
 // Infof works like Printf and works same as Info
 func Infof(template string, a ...interface{}) {
-	logger.Infof(template, a)
+	if logger != nil {
+		logger.Infof(template, a)
+	}
 }
 
 // Warn will generate a new log into to the logger
 func Warn(log string) {
-	logger.Warn(log)
+	if logger != nil {
+		logger.Warn(log)
+	}
 }
 
 // Warnf works like Printf and works same as Warn
 func Warnf(template string, a ...interface{}) {
-	logger.Warnf(template, a)
+	if logger != nil {
+		logger.Warnf(template, a)
+	}
 }
 
 // Error will generate a new log into to the logger
 func Error(log string) {
-	logger.Error(log)
+	if logger != nil {
+		logger.Error(log)
+	}
 }
 
 // Errorf works like Printf and works same as Error
 func Errorf(template string, a ...interface{}) {
-	logger.Errorf(template, a)
+	if logger != nil {
+		logger.Errorf(template, a)
+	}
 }
 
 // Fatal will generate a new log into to the logger
 func Fatal(log string) {
-	logger.Fatal(log)
+	if logger != nil {
+		logger.Fatal(log)
+	}
 }
 
 // Fatalf works like Printf and works same as Fatal
 func Fatalf(template string, a ...interface{}) {
-	logger.Fatalf(template, a)
+	if logger != nil {
+		logger.Fatalf(template, a)
+	}
 }

@@ -25,6 +25,9 @@ type Event interface {
 	// ID will return the UUID of the event
 	ID() string
 
+	// Error will return the error assign to the event
+	Error() error
+
 	// Topic will return the source topic of the Event
 	Topic() string
 
@@ -39,6 +42,7 @@ type Event interface {
 type event struct {
 	id     string
 	data   interface{}
+	err    error
 	topic  string
 	time   int64
 	source string
@@ -50,6 +54,10 @@ func (e *event) Data() interface{} {
 
 func (e *event) ID() string {
 	return e.id
+}
+
+func (e *event) Error() error {
+	return e.err
 }
 
 func (e *event) Topic() string {
@@ -65,15 +73,16 @@ func (e *event) Source() string {
 }
 
 // NewEvent will return a new event instance, set source as anonymous
-func NewEvent(topic string, data interface{}) Event {
-	return NewEventWithSource(topic, anonymousSource, data)
+func NewEvent(topic string, data interface{}, err error) Event {
+	return NewEventWithSource(topic, anonymousSource, data, err)
 }
 
 // NewEventWithSource will return a new event instance with the given source
-func NewEventWithSource(topic, source string, data interface{}) Event {
+func NewEventWithSource(topic, source string, data interface{}, err error) Event {
 	return &event{
 		id:     util.GenNewUUID(),
 		data:   data,
+		err:    err,
 		topic:  topic,
 		time:   time.Now().Unix(),
 		source: source,
@@ -86,10 +95,10 @@ type EventBus interface {
 	// - If success, the future will return the number of successfully delivered receivers
 	// - Otherwise the err will be set.
 	// The source of Publish will be "anonymous"
-	Publish(string, interface{}) Future
+	Publish(string, interface{}, error) Future
 
 	// PublishWithSource will publish a event with a specific source. It works same as Publish.
-	PublishWithSource(string, string, interface{}) Future
+	PublishWithSource(string, string, interface{}, error) Future
 
 	// Subscribe will get a receiver of the corresponding topic.
 	// If no topic with the given name, the error will be ErrNoSuchTopic.
@@ -112,7 +121,7 @@ type eventBus struct {
 	topics map[string]Topic
 }
 
-func (e *eventBus) Publish(name string, data interface{}) Future {
+func (e *eventBus) Publish(name string, data interface{}, err error) Future {
 	e.mutex.RLock()
 	defer e.mutex.RUnlock()
 
@@ -122,10 +131,10 @@ func (e *eventBus) Publish(name string, data interface{}) Future {
 		return NewFuture(NewErrorTask(ErrNoSuchTopic))
 	}
 
-	return topic.Publish(NewEvent(name, data))
+	return topic.Publish(NewEvent(name, data, err))
 }
 
-func (e *eventBus) PublishWithSource(name, source string, data interface{}) Future {
+func (e *eventBus) PublishWithSource(name, source string, data interface{}, err error) Future {
 	e.mutex.RLock()
 	defer e.mutex.RUnlock()
 
@@ -135,7 +144,7 @@ func (e *eventBus) PublishWithSource(name, source string, data interface{}) Futu
 		return NewFuture(NewErrorTask(ErrNoSuchTopic))
 	}
 
-	return topic.Publish(NewEventWithSource(name, source, data))
+	return topic.Publish(NewEventWithSource(name, source, data, err))
 }
 
 func (e *eventBus) Subscribe(name string, subscriber string) (Receiver, error) {

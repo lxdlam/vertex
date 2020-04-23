@@ -27,7 +27,7 @@ func (is int64Slice) Swap(i, j int) {
 }
 
 func newEvent(data interface{}) Event {
-	return NewEvent("dummy", data)
+	return NewEvent("dummy", data, nil)
 }
 
 func genTestData(size int) []int64 {

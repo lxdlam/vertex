@@ -4,6 +4,7 @@ import (
 	"errors"
 	"sync"
 	"sync/atomic"
+	"time"
 
 	"github.com/lxdlam/vertex/pkg/common"
 )
@@ -17,6 +18,9 @@ var (
 type Topic interface {
 	// Subscriber will return a new Receiver and register the Sender to itself.
 	Subscribe(string) Receiver
+
+	// SubscribeWithOptions will return a Receiver with specified options
+	SubscribeWithOptions(string, int, time.Duration) Receiver
 
 	// Publish will distribute all Events to the registered Sender.
 	// When distributing, it will start goroutines and wait them to expire.
@@ -39,7 +43,13 @@ type topic struct {
 }
 
 func (t *topic) Subscribe(name string) Receiver {
-	r, s := NewDataChannelWithOption(10, DefaultExpireTime)
+	r, s := NewDataChannel()
+	t.subscribers.Store(name, s)
+	return r
+}
+
+func (t *topic) SubscribeWithOptions(name string, size int, duration time.Duration) Receiver {
+	r, s := NewDataChannelWithOption(size, duration)
 	t.subscribers.Store(name, s)
 	return r
 }
@@ -48,7 +58,7 @@ func (t *topic) Publish(e Event) (fut Future) {
 	ch := make(chan int32, 1)
 
 	fut = NewFuture(NewTask(func() (interface{}, error) {
-		return <-ch, nil
+		return int(<-ch), nil
 	}))
 
 	go t.distributeEvent(e, ch)
@@ -59,7 +69,7 @@ func (t *topic) Publish(e Event) (fut Future) {
 func (t *topic) Remove() {
 	ch := make(chan int32, 1)
 
-	go t.distributeEvent(NewEvent(t.name, ErrTopicRemoved), ch)
+	go t.distributeEvent(NewEvent(t.name, nil, ErrTopicRemoved), ch)
 
 	<-ch
 }
