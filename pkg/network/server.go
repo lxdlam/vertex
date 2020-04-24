@@ -126,17 +126,17 @@ func (s *server) newConn(conn net.Conn) {
 
 }
 
-func (s *server) response(resp Response) {
-	conn, ok := s.clients.Load(resp.ClientID)
-	if !ok {
-		common.Errorf("client %d not exist", resp.ClientID)
-	}
+// func (s *server) response(resp Response) {
+// 	conn, ok := s.clients.Load(resp.ClientID)
+// 	if !ok {
+// 		common.Errorf("client %d not exist", resp.ClientID)
+// 	}
 
-	respByte := resp.Resp.Byte()
+// 	respByte := resp.Resp.Byte()
 
-	write, err := conn.(*net.TCPConn).Write(respByte)
+// 	write, err := conn.(*net.TCPConn).Write(respByte)
 
-}
+// }
 
 func (s *server) clean() {
 
