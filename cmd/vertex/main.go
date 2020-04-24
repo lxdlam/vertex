@@ -2,6 +2,8 @@ package main
 
 import (
 	"fmt"
+	"sync"
+	"time"
 )
 
 const banner string = `
@@ -22,13 +24,38 @@ const banner string = `
 ===================================================================
 `
 
+var wg sync.WaitGroup
+
+func blockCall() int {
+	for {
+		fmt.Println("Blocking...")
+	}
+
+	wg.Done()
+	return 15
+}
+
+func test(c chan struct{}) int {
+	select {
+	case <-c:
+		wg.Done()
+		return 10
+	default:
+		ret := blockCall()
+		return ret
+	}
+}
+
 func main() {
 	fmt.Println(banner)
+	wg.Add(2)
 
-	str := "123456789"
-	fmt.Println(str[:])
-	fmt.Println(str[1:])
-	fmt.Println(str[:9])
-	l := len(str)
-	fmt.Println(str[1 : l-2])
+	ch := make(chan struct{})
+	go test(ch)
+
+	time.Sleep(100 * time.Millisecond)
+
+	close(ch)
+
+	wg.Wait()
 }

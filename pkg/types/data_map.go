@@ -5,7 +5,7 @@ import (
 	"sync/atomic"
 )
 
-// DataMap is string to any value map to carry datas
+// DataMap is string to any value map to carry data
 // It provides many accessors
 type DataMap interface {
 	Set(string, interface{})
@@ -116,7 +116,7 @@ func NewSyncDataMap() *SyncDataMap {
 	return &SyncDataMap{}
 }
 
-// Set will do insert and size increament
+// Set will do insert and size increment
 // It will do a check if the key is exist to determine if we need to increase the size
 func (sdm *SyncDataMap) Set(key string, value interface{}) {
 	if !sdm.Has(key) {

@@ -17,6 +17,9 @@ var (
 	ErrNoSuchTopic = errors.New("event_bus: no such topic")
 )
 
+var eventBusInstance EventBus = nil
+var once sync.Once
+
 // Event includes all necessary data to describe a Event.
 type Event interface {
 	// Data will return the payload of the event
@@ -105,6 +108,10 @@ type EventBus interface {
 	// No unsubscribe semantic will be given, the receiver can self unsubscribe.
 	Subscribe(string, string) (Receiver, error)
 
+	// SubscribeWithOptions will get a receiver of the corresponding topic.
+	// The given arguments is just pass to the NewDataChannelWithOption directly.
+	SubscribeWithOptions(string, string, int, time.Duration) (Receiver, error)
+
 	// NewTopic will generate a new topic, false if topic exists
 	NewTopic(string) bool
 
@@ -158,7 +165,19 @@ func (e *eventBus) Subscribe(name string, subscriber string) (Receiver, error) {
 	}
 
 	return topic.Subscribe(subscriber), nil
+}
 
+func (e *eventBus) SubscribeWithOptions(name string, subscriber string, size int, duration time.Duration) (Receiver, error) {
+	e.mutex.RLock()
+	defer e.mutex.RUnlock()
+
+	topic, ok := e.topics[name]
+
+	if !ok {
+		return nil, ErrNoSuchTopic
+	}
+
+	return topic.SubscribeWithOptions(subscriber, size, duration), nil
 }
 
 func (e *eventBus) NewTopic(name string) bool {
@@ -199,4 +218,15 @@ func (e *eventBus) ExistTopic(name string) bool {
 	_, exist := e.topics[name]
 
 	return exist
+}
+
+// GetEventBus is an global function that returns the event bus object
+func GetEventBus() EventBus {
+	once.Do(func() {
+		eventBusInstance = &eventBus{
+			topics: make(map[string]Topic),
+		}
+	})
+
+	return eventBusInstance
 }

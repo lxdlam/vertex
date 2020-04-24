@@ -17,7 +17,7 @@ type respReader struct {
 	token  string
 }
 
-func (r *respReader) nextToken() error {
+func (r *respReader) readToken() error {
 	var buf bytes.Buffer
 
 	for {
@@ -42,20 +42,37 @@ func (r *respReader) nextToken() error {
 	return nil
 }
 
-func (r *respReader) peekFront() (string, error) {
-	if err := r.nextToken(); err != nil {
-		return "", err
+func (r *respReader) readBytes(count int) error {
+	var buf bytes.Buffer
+
+	if count < 0 {
+		return fmt.Errorf("invalid count. count=%d", count)
 	}
 
+	for i := 0; i < count; i++ {
+		b, err := r.reader.ReadByte()
+
+		if err != nil {
+			return fmt.Errorf("read byte failed. buf=%s, err={%w}", buf.String(), err)
+		}
+
+		buf.WriteByte(b)
+	}
+
+	r.token = buf.String()
+	return nil
+}
+
+func (r *respReader) peek() string {
 	if len(r.token) <= 0 {
-		return "", fmt.Errorf("empty token")
+		return ""
 	}
 
-	return string(r.token[0]), nil
+	return string(r.token[0])
 }
 
 func (r *respReader) readString() (RedisString, error) {
-	switch string(r.token[0]) {
+	switch r.peek() {
 	case SimpleStringType:
 		l := len(r.token)
 		return NewSimpleRedisString(r.token[1 : l-2]), nil
@@ -68,23 +85,14 @@ func (r *respReader) readString() (RedisString, error) {
 			return nil, fmt.Errorf("invalid bulk string length. token=%s, err={%w}", curToken, err)
 		}
 
-		// null bulk string
+		// real string section
 		if sLen == -1 {
 			return NewNullBulkRedisString(), nil
+		} else if err := r.readBytes(int(sLen) + 2); err == nil {
+			return NewBulkRedisString(r.token[:sLen]), nil
+		} else {
+			return nil, fmt.Errorf("read real string failed. length=%d, token=%s, err={%w}", sLen, r.token, err)
 		}
-
-		// real string section
-		if err := r.nextToken(); err != nil {
-			return nil, fmt.Errorf("invalid bulk string second token. token=%s, err={%w}", curToken, err)
-		}
-
-		if sLen == 0 {
-			return NewBulkRedisString(""), nil
-		} else if int(sLen) == len(r.token)-2 {
-			return NewBulkRedisString(r.token[1 : l-2]), nil
-		}
-
-		return nil, fmt.Errorf("bulk string length mismatch. length=%d, token=%s", sLen, r.token)
 	}
 
 	return nil, fmt.Errorf("unknown string type. token=%s", r.token)
@@ -132,8 +140,8 @@ func (r *respReader) readArray() (RedisArray, error) {
 }
 
 func (r *respReader) readObject() (RedisObject, error) {
-	if front, err := r.peekFront(); err == nil {
-		switch front {
+	if err := r.readToken(); err == nil {
+		switch r.peek() {
 		case SimpleStringType, BulkStringType:
 			return r.readString()
 		case ErrorType:

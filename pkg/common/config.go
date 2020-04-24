@@ -10,6 +10,7 @@ import (
 type Config struct {
 	LogPath  string `toml:"log_path"`
 	LogLevel string `toml:"log_level"`
+	Port     int    `toml:"port"`
 }
 
 // NewConfig will return a config instance with default value
@@ -17,6 +18,7 @@ func NewConfig() *Config {
 	return &Config{
 		LogPath:  "./log/vertex.log",
 		LogLevel: "INFO",
+		Port:     8081,
 	}
 }
 
