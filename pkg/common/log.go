@@ -1,6 +1,7 @@
 package common
 
 import (
+	"errors"
 	"fmt"
 	"os"
 	"time"
@@ -101,7 +102,7 @@ func Debugf(template string, a ...interface{}) {
 	}
 }
 
-// Info will generate a new log into to the logger
+// Info will generate a new info log into to the logger
 func Info(log string) {
 	if logger != nil {
 		logger.Info(log)
@@ -115,7 +116,7 @@ func Infof(template string, a ...interface{}) {
 	}
 }
 
-// Warn will generate a new log into to the logger
+// Warn will generate a new warn log into to the logger
 func Warn(log string) {
 	if logger != nil {
 		logger.Warn(log)
@@ -129,21 +130,25 @@ func Warnf(template string, a ...interface{}) {
 	}
 }
 
-// Error will generate a new log into to the logger
-func Error(log string) {
+// Error will generate a new error log into to the logger, a new error with the same message will also be raised
+func Error(log string) error {
 	if logger != nil {
 		logger.Error(log)
 	}
+
+	return errors.New(log)
 }
 
 // Errorf works like Printf and works same as Error
-func Errorf(template string, a ...interface{}) {
+func Errorf(template string, a ...interface{}) error {
 	if logger != nil {
-		logger.Errorf(template, a)
+		logger.Errorf(template, a...)
 	}
+
+	return fmt.Errorf(template, a...)
 }
 
-// Fatal will generate a new log into to the logger
+// Fatal will generate a new fatal log into to the logger
 func Fatal(log string) {
 	if logger != nil {
 		logger.Fatal(log)
