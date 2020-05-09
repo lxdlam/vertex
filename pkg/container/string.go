@@ -5,13 +5,5 @@ package container
 type String string
 
 const (
-	DUMMY String = "DUMMY"
+	dummy String = "dummy string"
 )
-
-func (s String) AsRune() []rune {
-	return []rune(s)
-}
-
-func (s String) AsByte() []byte {
-	return []byte(s)
-}

@@ -83,14 +83,16 @@ func insertAfter(n *listNode, data String) error {
 	return nil
 }
 
-func delete(n *listNode) (String, error) {
+func deleteNode(n *listNode) (String, error) {
 	if n == nil {
-		return DUMMY, common.Errorf("linked_list: delete a nil listNode")
+		return dummy, common.Errorf("linked_list: delete a nil listNode")
 	}
 
 	data := n.data
 	n.prev.next = n.next
 	n.next.prev = n.prev
+	n.next = nil
+	n.prev = nil
 	n = nil
 
 	return data, nil
@@ -166,8 +168,8 @@ func NewLinkedList(key string) LinkedList {
 	}
 
 	// Two dummy listNodes overhead here to simplify all process
-	head := &listNode{data: DUMMY, prev: nil}
-	tail := &listNode{data: DUMMY, next: nil}
+	head := &listNode{data: dummy, prev: nil}
+	tail := &listNode{data: dummy, next: nil}
 
 	head.next = tail
 	tail.prev = head
@@ -201,18 +203,18 @@ func (l *linkedList) PushTail(data []String) (int, error) {
 
 func (l *linkedList) PopHead() (String, error) {
 	if l.head.next == l.tail {
-		return DUMMY, ErrEmptyList
+		return dummy, ErrEmptyList
 	}
 
-	return delete(l.head.next)
+	return deleteNode(l.head.next)
 }
 
 func (l *linkedList) PopTail() (String, error) {
 	if l.tail.prev == l.head {
-		return DUMMY, ErrEmptyList
+		return dummy, ErrEmptyList
 	}
 
-	return delete(l.tail.prev)
+	return deleteNode(l.tail.prev)
 }
 
 func (l *linkedList) Insert(pivot, data String, after bool) (int, error) {
@@ -259,10 +261,7 @@ func (l *linkedList) Remove(index int) error {
 		return ErrOutOfRange
 	}
 
-	n.prev.next = n.next
-	n.next.prev = n.prev
-	n.prev = nil
-	n.next = nil
+	_, _ = deleteNode(n)
 	l.size--
 
 	return nil
@@ -272,7 +271,7 @@ func (l *linkedList) Index(index int) (String, error) {
 	n := l.extract(index)
 
 	if n == nil {
-		return DUMMY, ErrOutOfRange
+		return dummy, ErrOutOfRange
 	}
 
 	return n.data, nil
