@@ -163,5 +163,5 @@ func (h *hashContainer) KeyLen(key *StringContainer) (int, error) {
 }
 
 func (h *hashContainer) Len() int {
-	panic("implement me")
+	return len(h.container)
 }
