@@ -1,8 +1,6 @@
 package main
 
-import (
-	"fmt"
-)
+import "fmt"
 
 const banner string = `
 ===================================================================
@@ -23,22 +21,17 @@ const banner string = `
 `
 
 func main() {
-	fmt.Println(banner)
+	count := 22
 
-	cur := -1
-	left, right := -1, -1
+	candidate := []int{1, 2, 3, 4, 5, 6, 7, 8, 9, 0, 9, 8, 7, 6, 5, 4, 3, 2, 1}
+	ret := []int{}
 
-	for idx := -1; idx < 933; idx++ {
-		cur++
-
-		if cur == 73 {
-			left = 73
-		} else if cur == 933 {
-			right = 933
+	for _, item := range candidate {
+		if count--; count < 0 {
+			break
 		}
-
-		fmt.Printf("Round: idx=%d, cur=%d, left=%d, right=%d\n", idx, cur, left, right)
+		ret = append(ret, item)
 	}
 
-	fmt.Printf("Final: cur=%d, left=%d, right=%d\n", cur, left, right)
+	fmt.Println(len(ret))
 }

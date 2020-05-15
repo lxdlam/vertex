@@ -18,28 +18,30 @@ var (
 	ErrOutOfRange = errors.New("index out of range")
 )
 
-// LinkedList is the list container interface.
-type LinkedList interface {
-	PushHead([]String) (int, error)
-	PushTail([]String) (int, error)
+// ListContainer is the list data structure interface
+type ListContainer interface {
+	ContainerObject
 
-	PopHead() (String, error)
-	PopTail() (String, error)
+	PushHead([]*StringContainer) (int, error)
+	PushTail([]*StringContainer) (int, error)
 
-	Insert(String, String, bool) (int, error)
-	Set(int, String) error
+	PopHead() (*StringContainer, error)
+	PopTail() (*StringContainer, error)
+
+	Insert(*StringContainer, *StringContainer, bool) (int, error)
+	Set(int, *StringContainer) error
 
 	Remove(int) error
 	Trim(int, int) error
 
-	Index(int) (String, error)
-	Range(int, int) ([]String, error)
+	Index(int) (*StringContainer, error)
+	Range(int, int) ([]*StringContainer, error)
 
 	Len() int
 }
 
 type listNode struct {
-	data String
+	data *StringContainer
 	next *listNode
 	prev *listNode
 }
@@ -51,7 +53,7 @@ type linkedList struct {
 	size int
 }
 
-func insertBefore(n *listNode, data String) error {
+func insertBefore(n *listNode, data *StringContainer) error {
 	if n == nil {
 		return common.Errorf("linked_list: insert a element before a nil listNode")
 	}
@@ -67,7 +69,7 @@ func insertBefore(n *listNode, data String) error {
 	return nil
 }
 
-func insertAfter(n *listNode, data String) error {
+func insertAfter(n *listNode, data *StringContainer) error {
 	if n == nil {
 		return common.Errorf("linked_list: insert a element after a nil listNode")
 	}
@@ -83,7 +85,7 @@ func insertAfter(n *listNode, data String) error {
 	return nil
 }
 
-func deleteNode(n *listNode) (String, error) {
+func deleteNode(n *listNode) (*StringContainer, error) {
 	if n == nil {
 		return dummy, common.Errorf("linked_list: delete a nil listNode")
 	}
@@ -144,6 +146,17 @@ func (l *linkedList) extractSegment(left, right int) (*listNode, *listNode) {
 	return nil, nil
 }
 
+func (l *linkedList) debugExtract() []string {
+	cur := l.head.next
+	var ret []string
+	for cur != l.tail {
+		ret = append(ret, cur.data.data)
+		cur = cur.next
+	}
+
+	return ret
+}
+
 // mark all pointer to nil, so the GC can properly release them.
 // move from head to tail
 func releaseList(n *listNode) int {
@@ -158,8 +171,8 @@ func releaseList(n *listNode) int {
 	return length + 1
 }
 
-// NewLinkedList will return a new linked list instance which is assigned of the give key
-func NewLinkedList(key string) LinkedList {
+// NewLinkedListContainer will return a new linked list instance which is assigned of the give key
+func NewLinkedListContainer(key string) ListContainer {
 	l := &linkedList{
 		key:  key,
 		head: nil,
@@ -179,7 +192,17 @@ func NewLinkedList(key string) LinkedList {
 	return l
 }
 
-func (l *linkedList) PushHead(data []String) (int, error) {
+func (l *linkedList) isContainer() {}
+
+func (l *linkedList) Key() string {
+	return l.key
+}
+
+func (l *linkedList) Type() ContainerType {
+	return LinkedListType
+}
+
+func (l *linkedList) PushHead(data []*StringContainer) (int, error) {
 	for _, item := range data {
 		if err := insertAfter(l.head, item); err != nil {
 			return -1, err
@@ -190,7 +213,7 @@ func (l *linkedList) PushHead(data []String) (int, error) {
 	return l.size, nil
 }
 
-func (l *linkedList) PushTail(data []String) (int, error) {
+func (l *linkedList) PushTail(data []*StringContainer) (int, error) {
 	for _, item := range data {
 		if err := insertBefore(l.tail, item); err != nil {
 			return -1, err
@@ -201,27 +224,29 @@ func (l *linkedList) PushTail(data []String) (int, error) {
 	return l.size, nil
 }
 
-func (l *linkedList) PopHead() (String, error) {
+func (l *linkedList) PopHead() (*StringContainer, error) {
 	if l.head.next == l.tail {
 		return dummy, ErrEmptyList
 	}
 
+	l.size--
 	return deleteNode(l.head.next)
 }
 
-func (l *linkedList) PopTail() (String, error) {
+func (l *linkedList) PopTail() (*StringContainer, error) {
 	if l.tail.prev == l.head {
 		return dummy, ErrEmptyList
 	}
 
+	l.size--
 	return deleteNode(l.tail.prev)
 }
 
-func (l *linkedList) Insert(pivot, data String, after bool) (int, error) {
+func (l *linkedList) Insert(pivot, data *StringContainer, after bool) (int, error) {
 	cur := l.head
 
 	for cur != l.tail {
-		if cur.data == pivot {
+		if cur.data.Equals(pivot) {
 			if after {
 				if err := insertAfter(cur, data); err != nil {
 					return -2, err
@@ -243,7 +268,7 @@ func (l *linkedList) Insert(pivot, data String, after bool) (int, error) {
 	return -1, ErrNoSuchPivot
 }
 
-func (l *linkedList) Set(index int, data String) error {
+func (l *linkedList) Set(index int, data *StringContainer) error {
 	n := l.extract(index)
 
 	if n == nil {
@@ -267,7 +292,7 @@ func (l *linkedList) Remove(index int) error {
 	return nil
 }
 
-func (l *linkedList) Index(index int) (String, error) {
+func (l *linkedList) Index(index int) (*StringContainer, error) {
 	n := l.extract(index)
 
 	if n == nil {
@@ -277,10 +302,10 @@ func (l *linkedList) Index(index int) (String, error) {
 	return n.data, nil
 }
 
-func (l *linkedList) Range(left, right int) ([]String, error) {
+func (l *linkedList) Range(left, right int) ([]*StringContainer, error) {
 	leftNode, rightNode := l.extractSegment(left, right)
 	if leftNode != nil && rightNode != nil {
-		var result []String
+		var result []*StringContainer
 		for leftNode != rightNode {
 			result = append(result, leftNode.data)
 			leftNode = leftNode.next
