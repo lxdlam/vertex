@@ -3,7 +3,7 @@ package container
 type ContainerType int
 
 const (
-	_ ContainerType = iota
+	AnyType ContainerType = iota
 	StringType
 	LinkedListType
 	HashType
@@ -19,4 +19,12 @@ type ContainerObject interface {
 }
 
 type Container interface {
+}
+
+type container struct {
+	index      int
+	lists      map[string]ListContainer
+	hashes     map[string]HashContainer
+	sets       map[string]SetContainer
+	sortedSets map[string]SortedSetContainer
 }

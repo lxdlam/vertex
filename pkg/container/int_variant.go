@@ -27,22 +27,22 @@ func newIntVariant(data string) intVariant {
 	return nil
 }
 
-func (i intVariantImpl) Get() int64 {
+func (i *intVariantImpl) Get() int64 {
 	return i.val
 }
 
-func (i intVariantImpl) Increase(increment int64) {
+func (i *intVariantImpl) Increase(increment int64) {
 	i.val += increment
 }
 
-func (i intVariantImpl) Decrease(decrement int64) {
+func (i *intVariantImpl) Decrease(decrement int64) {
 	i.val -= decrement
 }
 
-func (i intVariantImpl) AsString() string {
+func (i *intVariantImpl) AsString() string {
 	return fmt.Sprintf("%d", i.val)
 }
 
-func (i intVariantImpl) AsIntObject() protocol.RedisInteger {
+func (i *intVariantImpl) AsIntObject() protocol.RedisInteger {
 	return protocol.NewRedisInteger(i.val)
 }

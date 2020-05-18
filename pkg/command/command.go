@@ -1,7 +1,25 @@
 package command
 
-// Command should provide some basic
+import (
+	"github.com/lxdlam/vertex/pkg/container"
+	"github.com/lxdlam/vertex/pkg/protocol"
+)
+
 type Command interface {
-	// Key should return the command's key in client, e.g., SET or GET.
+	Name() string
+	Execute(container.Container) (protocol.RedisObject, error)
+	Validate() bool
+}
+
+type OperationCommand interface {
+	Command
+
 	Key() string
+	Arguments() []*protocol.RedisObject
+}
+
+type CancellableCommand interface {
+	Command
+
+	GenCancelCommand() Command
 }

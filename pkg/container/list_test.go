@@ -1,31 +1,25 @@
 package container
 
 import (
-	"bytes"
-	"math/rand"
-	"testing"
-	"time"
-
 	"github.com/stretchr/testify/assert"
+	"testing"
 )
 
 const (
-	seed                = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789"
-	defaultStringLength = 100
-	defaultTestCase     = 100
+	defaultListTestCase = 100
 )
 
-func TestPushAndPopHead(t *testing.T) {
+func TestListPushAndPopHead(t *testing.T) {
 	l := NewLinkedListContainer("test")
 
-	expected, testCase := genRandomCase(defaultTestCase)
+	expected, testCase := genRandomCase(defaultListTestCase)
 	expected = reverse(expected)
 
 	size, err := l.PushHead(testCase)
 
 	assert.Nil(t, err)
 	assert.Equal(t, len(expected), size)
-	assert.ElementsMatch(t, expected, l.(*linkedList).debugExtract())
+	assert.ElementsMatch(t, expected, extractRange(l, 0, -1))
 
 	var actual []string
 
@@ -40,16 +34,16 @@ func TestPushAndPopHead(t *testing.T) {
 	assert.ElementsMatch(t, expected, actual)
 }
 
-func TestPushAndPopTail(t *testing.T) {
+func TestListPushAndPopTail(t *testing.T) {
 	l := NewLinkedListContainer("test")
 
-	expected, testCase := genRandomCase(defaultTestCase)
+	expected, testCase := genRandomCase(defaultListTestCase)
 
 	size, err := l.PushTail(testCase)
 
 	assert.Nil(t, err)
 	assert.Equal(t, len(expected), size)
-	assert.ElementsMatch(t, expected, l.(*linkedList).debugExtract())
+	assert.ElementsMatch(t, expected, extractRange(l, 0, -1))
 
 	var actual []string
 
@@ -64,37 +58,56 @@ func TestPushAndPopTail(t *testing.T) {
 	assert.ElementsMatch(t, expected, actual)
 }
 
-func genRandomString(length int) string {
-	rand.Seed(time.Now().UnixNano())
+func TestListInsert(t *testing.T) {
+	l := NewLinkedListContainer("test")
 
-	var buf bytes.Buffer
+	expected, testCase := genRandomCase(defaultListTestCase)
 
-	for i := 0; i < length; i++ {
-		idx := rand.Intn(len(seed))
-		buf.WriteByte(seed[idx])
-	}
+	// Ensure in the same order
+	size, err := l.PushTail(testCase)
 
-	return buf.String()
+	assert.Nil(t, err)
+	assert.Equal(t, len(expected), size)
+	assert.ElementsMatch(t, expected, extractRange(l, 0, -1))
+
 }
 
-func genRandomCase(size int) ([]string, []*StringContainer) {
-	var expected []string
-	var testCase []*StringContainer
+func TestListSet(t *testing.T) {
 
-	for i := 0; i < size; i++ {
-		str := genRandomString(defaultStringLength)
-		expected = append(expected, str)
-		testCase = append(testCase, NewString(str))
-	}
-
-	return expected, testCase
 }
 
-func reverse(slice []string) []string {
-	ret := slice[:]
+func TestListRemove(t *testing.T) {
 
-	for i, j := 0, len(ret)-1; i < j; i, j = i+1, j-1 {
-		ret[i], ret[j] = ret[j], ret[i]
+}
+
+func TestListTrim(t *testing.T) {
+
+}
+
+func TestListIndex(t *testing.T) {
+
+}
+
+func TestListRange(t *testing.T) {
+	l := NewLinkedListContainer("test")
+
+	expected, testCase := genRandomCase(defaultListTestCase)
+
+	// Ensure in the same order
+	size, err := l.PushTail(testCase)
+
+	assert.Nil(t, err)
+	assert.Equal(t, len(expected), size)
+	assert.ElementsMatch(t, expected, extractRange(l, 0, -1))
+
+
+}
+
+func extractRange(l ListContainer, left, right int) []string {
+	var ret []string
+	list, _ := l.Range(left, right)
+	for _, item := range list {
+		ret = append(ret, item.data)
 	}
 
 	return ret

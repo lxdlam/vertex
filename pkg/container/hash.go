@@ -26,7 +26,7 @@ type HashContainer interface {
 
 	Keys() []*StringContainer
 	Values() []*StringContainer
-	Items() ([]*StringContainer, []*StringContainer)
+	Entries() ([]*StringContainer, []*StringContainer)
 
 	KeyLen(*StringContainer) (int, error)
 	Len() int
@@ -141,7 +141,7 @@ func (h *hashContainer) Values() []*StringContainer {
 	return ret
 }
 
-func (h *hashContainer) Items() ([]*StringContainer, []*StringContainer) {
+func (h *hashContainer) Entries() ([]*StringContainer, []*StringContainer) {
 	var keys, values []*StringContainer
 
 	for _, entry := range h.container {

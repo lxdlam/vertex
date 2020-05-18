@@ -105,7 +105,7 @@ func (l *linkedList) extract(index int) *listNode {
 
 	if normIndex != -1 {
 		cur := l.head
-		for idx := -1; idx < normIndex; idx++ {
+		for idx := -1; idx <= normIndex; idx++ {
 			cur = cur.next
 		}
 
@@ -130,7 +130,7 @@ func (l *linkedList) extractSegment(left, right int) (*listNode, *listNode) {
 
 		cur := l.head
 
-		for idx := -1; idx < normRight; idx++ {
+		for idx := -1; idx <= normRight; idx++ {
 			if idx == normLeft {
 				leftNode = cur
 			} else if idx == normRight {
@@ -144,17 +144,6 @@ func (l *linkedList) extractSegment(left, right int) (*listNode, *listNode) {
 	}
 
 	return nil, nil
-}
-
-func (l *linkedList) debugExtract() []string {
-	cur := l.head.next
-	var ret []string
-	for cur != l.tail {
-		ret = append(ret, cur.data.data)
-		cur = cur.next
-	}
-
-	return ret
 }
 
 // mark all pointer to nil, so the GC can properly release them.
@@ -306,10 +295,16 @@ func (l *linkedList) Range(left, right int) ([]*StringContainer, error) {
 	leftNode, rightNode := l.extractSegment(left, right)
 	if leftNode != nil && rightNode != nil {
 		var result []*StringContainer
+
 		for leftNode != rightNode {
 			result = append(result, leftNode.data)
 			leftNode = leftNode.next
 		}
+
+		// Append the last one
+		result = append(result, leftNode.data)
+
+		return result, nil
 	}
 
 	return nil, ErrOutOfRange

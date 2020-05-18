@@ -59,7 +59,7 @@ func (s *Slice) ResolveRaw(size int) (int, int) {
 func (s *Slice) Resolve(size int) (int, int) {
 	left, right := s.ResolveRaw(size)
 
-	if left == -1 || right == -1 || left > right {
+	if left < 0 || right < 0 || left >= size || right >= size || left > right {
 		return -1, -1
 	}
 

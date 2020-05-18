@@ -50,6 +50,10 @@ func (s *StringContainer) Len() int {
 
 // Equals will check if the both string is same by their value
 func (s *StringContainer) Equals(another *StringContainer) bool {
+	if s == another {
+		return true
+	}
+
 	if s.hash != another.hash {
 		return false
 	}
