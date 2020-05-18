@@ -3,11 +3,11 @@ package container
 import (
 	"bytes"
 	"fmt"
-	"github.com/lxdlam/vertex/pkg/protocol"
-	"github.com/stretchr/testify/assert"
-	"math/rand"
 	"testing"
-	"time"
+
+	"github.com/lxdlam/vertex/pkg/protocol"
+	"github.com/lxdlam/vertex/pkg/util"
+	"github.com/stretchr/testify/assert"
 )
 
 const (
@@ -152,10 +152,8 @@ func TestStringObject(t *testing.T) {
 }
 
 func TestStringIntOperations(t *testing.T) {
-	rand.Seed(time.Now().UnixNano())
-
 	for idx := 0; idx < defaultListTestCase; idx++ {
-		candidate := rand.Int63()
+		candidate := util.GetGlobalRandom().Int63()
 		if !testIntOperations(t, candidate) {
 			t.Fatalf("test string int operations fail. candidate=%d", candidate)
 		}
@@ -211,7 +209,7 @@ func testIntOperations(t *testing.T, number int64) bool {
 	}
 
 	// Random increase
-	dx := int64(rand.Int31()) // Make sure not exceeded int64
+	dx := int64(util.GetGlobalRandom().Int31()) // Make sure not exceeded int64
 	ret, err = str.Increase(dx)
 	if !assert.Nil(t, err) || !assert.Equal(t, number+dx, ret) || !testStringEqualInt(t, str, number+dx) {
 		t.Errorf("str += dx failed. str={%+v}, dx=%d, ret=%d, number=%d", str, dx, ret, number)
@@ -220,7 +218,7 @@ func testIntOperations(t *testing.T, number int64) bool {
 	_, _ = str.Decrease(dx)
 
 	// Random decrease
-	dx = int64(rand.Int31()) // Make sure not exceeded int64
+	dx = int64(util.GetGlobalRandom().Int31()) // Make sure not exceeded int64
 	ret, err = str.Decrease(dx)
 	if !assert.Nil(t, err) || !assert.Equal(t, number-dx, ret) || !testStringEqualInt(t, str, number-dx) {
 		t.Errorf("str -= dx failed. str={%+v}, dx=%d, ret=%d, number=%d", str, dx, ret, number)
@@ -268,12 +266,10 @@ func testStringEqualInt(t *testing.T, str *StringContainer, number int64) bool {
 }
 
 func genRandomString(length int) string {
-	rand.Seed(time.Now().UnixNano())
-
 	var buf bytes.Buffer
 
 	for i := 0; i < length; i++ {
-		idx := rand.Intn(len(seed))
+		idx := util.GetGlobalRandom().Intn(len(seed))
 		buf.WriteByte(seed[idx])
 	}
 

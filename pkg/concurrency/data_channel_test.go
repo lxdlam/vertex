@@ -1,7 +1,7 @@
 package concurrency_test
 
 import (
-	"math/rand"
+	"github.com/lxdlam/vertex/pkg/util"
 	"sort"
 	"sync"
 	"testing"
@@ -31,14 +31,12 @@ func newEvent(data interface{}) Event {
 }
 
 func genTestData(size int) []int64 {
-	rand.Seed(time.Now().UnixNano())
-
 	var result []int64
 	vis := make(map[int64]bool)
 	for i := 0; i < size; i++ {
 		var num int64
 		for {
-			num = rand.Int63()
+			num = util.GetGlobalRandom().Int63()
 			if _, ok := vis[num]; !ok {
 				vis[num] = true
 				result = append(result, num)
@@ -78,7 +76,7 @@ func TestDataChannelConcurrentSendReceive(t *testing.T) {
 				time.Sleep(time.Duration(sl) * time.Microsecond)
 				status := s.Send(newEvent(n))
 				assert.Equal(t, Success, status)
-			}(rand.Intn(10)+1, num)
+			}(util.GetGlobalRandom().Intn(10)+1, num)
 
 			expectedSlice = append(expectedSlice, num)
 		}

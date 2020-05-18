@@ -19,7 +19,7 @@ func GetNewRandom() *rand.Rand {
 // GetGlobalRandom returns the global random generator while the seed is properly set
 func GetGlobalRandom() *rand.Rand {
 	once.Do(func() {
-		source = rand.NewSource(time.Now().UnixNano())
+		source = rand.NewSource(time.Now().UTC().UnixNano())
 		globalRand = rand.New(source)
 	})
 

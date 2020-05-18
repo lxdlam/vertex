@@ -99,8 +99,6 @@ func TestListRange(t *testing.T) {
 	assert.Nil(t, err)
 	assert.Equal(t, len(expected), size)
 	assert.ElementsMatch(t, expected, extractRange(l, 0, -1))
-
-
 }
 
 func extractRange(l ListContainer, left, right int) []string {

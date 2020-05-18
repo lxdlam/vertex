@@ -2,10 +2,10 @@ package container
 
 import (
 	"fmt"
-	"github.com/stretchr/testify/assert"
-	"math/rand"
+	"github.com/lxdlam/vertex/pkg/util"
 	"testing"
-	"time"
+
+	"github.com/stretchr/testify/assert"
 )
 
 const (
@@ -45,7 +45,7 @@ func TestHashBasicOperation(t *testing.T) {
 	for idx := 0; idx < defaultHashTestCase; idx++ {
 		// In the same order of key
 		assert.NotNil(t, getValues[idx])
-		assert.Equal(t, values[idx], getValues[idx])
+		assert.Same(t, values[idx], getValues[idx])
 	}
 
 	getRandomValues := h.Get(randomKeys)
@@ -109,8 +109,6 @@ func TestHashCollisionKeys(t *testing.T) {
 }
 
 func TestHashIncrease(t *testing.T) {
-	rand.Seed(time.Now().UnixNano())
-
 	h := NewHashContainer("test")
 	keys := []*StringContainer{NewString("string"), NewString("int")}
 	values := []*StringContainer{NewString("abc"), NewString("1")}
@@ -119,12 +117,12 @@ func TestHashIncrease(t *testing.T) {
 	assert.Nil(t, err)
 
 	// Increase int
-	dx := rand.Int63()
+	dx := util.GetGlobalRandom().Int63()
 	ret, err := h.Increase(keys[1], dx)
 
 	getValues := h.Get([]*StringContainer{keys[1]})
 	assert.Equal(t, 1, len(getValues))
-	assert.Equal(t, getValues[0], values[1])
+	assert.Same(t, getValues[0], values[1])
 
 	assert.Nil(t, err)
 	assert.Equal(t, 1+dx, ret)
@@ -161,15 +159,13 @@ func TestHashExtract(t *testing.T) {
 	for idx := 0; idx < defaultHashTestCase; idx++ {
 		for j := 0; j < defaultHashTestCase; j++ {
 			if extractKeys[idx] == keys[j] {
-				assert.Equal(t, values[j], extractValues[idx])
+				assert.Same(t, values[j], extractValues[idx])
 			}
 		}
 	}
 }
 
 func TestHashKeyLen(t *testing.T) {
-	rand.Seed(time.Now().UnixNano())
-
 	h := NewHashContainer("test")
 
 	var keys, values []*StringContainer
@@ -182,7 +178,7 @@ func TestHashKeyLen(t *testing.T) {
 	err := h.Set(keys, values)
 	assert.Nil(t, err)
 
-	rand.Shuffle(defaultHashTestCase, func(i, j int) {
+	util.GetGlobalRandom().Shuffle(defaultHashTestCase, func(i, j int) {
 		keys[i], keys[j] = keys[j], keys[i]
 	})
 

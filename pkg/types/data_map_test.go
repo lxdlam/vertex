@@ -1,13 +1,13 @@
 package types_test
 
 import (
-	"math/rand"
 	"testing"
 	"time"
 
 	"github.com/stretchr/testify/assert"
 
 	. "github.com/lxdlam/vertex/pkg/types"
+	"github.com/lxdlam/vertex/pkg/util"
 )
 
 type testCase struct {
@@ -131,8 +131,7 @@ func testSyncOperation(ctx DataMap, t *testing.T) bool {
 	}
 
 	ch := make(chan bool)
-	s := rand.NewSource(time.Now().Unix())
-	r := rand.New(s)
+	r := util.GetGlobalRandom()
 
 	for _, tcs := range testCases {
 		go func(tc []testCase) {

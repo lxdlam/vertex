@@ -2,10 +2,11 @@ package container
 
 import (
 	"fmt"
-	"github.com/stretchr/testify/assert"
-	"math/rand"
 	"testing"
-	"time"
+
+	"github.com/lxdlam/vertex/pkg/util"
+
+	"github.com/stretchr/testify/assert"
 )
 
 const (
@@ -13,15 +14,13 @@ const (
 )
 
 func TestSetBasicOperation(t *testing.T) {
-	rand.Seed(time.Now().UnixNano())
-
 	s := NewSetContainer("test")
 
 	_, items := genRandomCase(defaultSetTestCase)
 
 	s.Add(items)
 
-	rand.Shuffle(defaultSetTestCase, func(i, j int) {
+	util.GetGlobalRandom().Shuffle(defaultSetTestCase, func(i, j int) {
 		items[i], items[j] = items[j], items[i]
 	})
 
@@ -36,7 +35,7 @@ func TestSetBasicOperation(t *testing.T) {
 		assert.False(t, s.IsMember(item))
 	}
 
-	rand.Shuffle(defaultSetTestCase, func(i, j int) {
+	util.GetGlobalRandom().Shuffle(defaultSetTestCase, func(i, j int) {
 		items[i], items[j] = items[j], items[i]
 	})
 
@@ -46,13 +45,11 @@ func TestSetBasicOperation(t *testing.T) {
 }
 
 func TestDuplicateItems(t *testing.T) {
-	rand.Seed(time.Now().UnixNano())
-
 	s := NewSetContainer("test")
 	var entries []*StringContainer
 
 	for idx := 0; idx < defaultSetTestCase; idx++ {
-		entries = append(entries, NewString(fmt.Sprintf("%d", rand.Int63()%5)))
+		entries = append(entries, NewString(fmt.Sprintf("%d", util.GetGlobalRandom().Int63()%5)))
 	}
 
 	s.Add(entries)
@@ -84,15 +81,13 @@ func TestSetCollisionEntries(t *testing.T) {
 }
 
 func TestSetAccess(t *testing.T) {
-	rand.Seed(time.Now().UnixNano())
-
 	s := NewSetContainer("test")
 
 	_, items := genRandomCase(defaultSetTestCase)
 
 	s.Add(items)
 
-	rand.Shuffle(defaultSetTestCase, func(i, j int) {
+	util.GetGlobalRandom().Shuffle(defaultSetTestCase, func(i, j int) {
 		items[i], items[j] = items[j], items[i]
 	})
 
@@ -101,15 +96,13 @@ func TestSetAccess(t *testing.T) {
 }
 
 func TestSetPop(t *testing.T) {
-	rand.Seed(time.Now().UnixNano())
-
 	s := NewSetContainer("test")
 
 	_, items := genRandomCase(defaultSetTestCase)
 
 	s.Add(items)
 
-	rand.Shuffle(defaultSetTestCase, func(i, j int) {
+	util.GetGlobalRandom().Shuffle(defaultSetTestCase, func(i, j int) {
 		items[i], items[j] = items[j], items[i]
 	})
 

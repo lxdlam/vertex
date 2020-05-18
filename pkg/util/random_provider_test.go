@@ -12,7 +12,7 @@ func TestGetNewRandom(t *testing.T) {
 
 	assert.NotNil(t, rand1)
 	assert.NotNil(t, rand2)
-	assert.NotEqual(t, rand1, rand2)
+	assert.NotSame(t, rand1, rand2)
 
 	for i := 0; i < 100; i++ {
 		assert.NotEqual(t, rand1.Int63(), rand2.Int63())
@@ -25,5 +25,5 @@ func TestGetGlobalRandom(t *testing.T) {
 
 	assert.NotNil(t, rand1)
 	assert.NotNil(t, rand2)
-	assert.Equal(t, rand1, rand2)
+	assert.Same(t, rand1, rand2)
 }
