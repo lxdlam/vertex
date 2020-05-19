@@ -2,8 +2,9 @@ package container
 
 import (
 	"fmt"
-	"github.com/lxdlam/vertex/pkg/protocol"
 	"strconv"
+
+	"github.com/lxdlam/vertex/pkg/protocol"
 )
 
 type intVariant interface {

@@ -57,8 +57,12 @@ type server struct {
 func (s *server) Init(c common.Config) bool {
 	var err error
 
-	common.Debug("Initialize server")
-	defer common.Debug("Initialize server success")
+	common.Debug("initialize server")
+	defer func() {
+		if err == nil {
+			common.Debug("initialize server success")
+		}
+	}()
 
 	addr := &net.TCPAddr{
 		IP:   []byte{127, 0, 0, 1},
@@ -67,7 +71,9 @@ func (s *server) Init(c common.Config) bool {
 
 	s.tcpListener, err = net.ListenTCP("tcp", addr)
 	if err != nil {
+		_ = common.Errorf("init tcp listener failed. addr={%+v}, err={%s}", addr, err.Error())
 
+		return false
 	}
 
 	s.eventBus.NewTopic("request")

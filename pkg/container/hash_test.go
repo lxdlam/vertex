@@ -2,8 +2,9 @@ package container
 
 import (
 	"fmt"
-	"github.com/lxdlam/vertex/pkg/util"
 	"testing"
+
+	"github.com/lxdlam/vertex/pkg/util"
 
 	"github.com/stretchr/testify/assert"
 )

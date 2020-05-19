@@ -18,8 +18,8 @@ type OperationCommand interface {
 	Arguments() []*protocol.RedisObject
 }
 
-type CancellableCommand interface {
-	Command
+type ModifyCommand interface {
+	OperationCommand
 
 	GenCancelCommand() Command
 }

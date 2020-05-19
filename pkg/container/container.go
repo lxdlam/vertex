@@ -18,10 +18,10 @@ type ContainerObject interface {
 	Type() ContainerType
 }
 
-type Container interface {
+type Containers interface {
 }
 
-type container struct {
+type containers struct {
 	index      int
 	lists      map[string]ListContainer
 	hashes     map[string]HashContainer

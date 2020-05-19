@@ -1,11 +1,12 @@
 package concurrency_test
 
 import (
-	"github.com/lxdlam/vertex/pkg/util"
 	"sort"
 	"sync"
 	"testing"
 	"time"
+
+	"github.com/lxdlam/vertex/pkg/util"
 
 	"github.com/stretchr/testify/assert"
 
