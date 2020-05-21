@@ -2,6 +2,7 @@ package command
 
 import (
 	"errors"
+
 	"github.com/lxdlam/vertex/pkg/protocol"
 )
 
@@ -22,7 +23,7 @@ type Command interface {
 	ToLog() string
 }
 
-// NewCommand
-func NewCommand(key string, arguments []*protocol.RedisObject) (Command, error) {
+// // NewCommand
+// func NewCommand(key string, arguments []*protocol.RedisObject) (Command, error) {
 
-}
+// }
