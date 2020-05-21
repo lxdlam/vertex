@@ -6,7 +6,9 @@ import (
 
 type Command interface {
 	Name() string
+	SetArguments([]*protocol.RedisObject)
 	Execute(string) (protocol.RedisObject, error)
+	ToLog() string
 	Validate() bool
 }
 
@@ -21,4 +23,15 @@ type ModifyCommand interface {
 	OperationCommand
 
 	GenCancelCommand() Command
+}
+
+type AccessCommand interface {
+	OperationCommand
+}
+
+var keyMap = map[string]func([]*protocol.RedisObject) Command{
+}
+
+type CommandFactory interface {
+	NewCommand(string, []*protocol.RedisObject) (Command, error)
 }

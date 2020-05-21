@@ -171,6 +171,49 @@ func TestStringIntOperations(t *testing.T) {
 	}
 }
 
+func TestRange(t *testing.T) {
+	str := "0123456789"
+	s := NewString(str)
+
+	for start := 0; start < 10; start++ {
+		for end := start; end < 10; end++ {
+			actual, err := s.GetRange(start, end)
+			assert.Nil(t, err)
+			assert.Equal(t, str[start:end+1], actual.String())
+		}
+	}
+
+	for start := 0; start < 10; start++ {
+		for end := start; end < 10; end++ {
+			actual, err := s.GetRange(start-10, end)
+			assert.Nil(t, err)
+			assert.Equal(t, str[start:end+1], actual.String())
+		}
+	}
+
+	for start := 0; start < 10; start++ {
+		for end := start; end < 10; end++ {
+			actual, err := s.GetRange(start, end-10)
+			assert.Nil(t, err)
+			assert.Equal(t, str[start:end+1], actual.String())
+		}
+	}
+
+	for start := 0; start < 10; start++ {
+		for end := start; end < 10; end++ {
+			actual, err := s.GetRange(start-10, end-10)
+			assert.Nil(t, err)
+			assert.Equal(t, str[start:end+1], actual.String())
+		}
+	}
+
+	_, err := s.GetRange(10, 5)
+	assert.EqualError(t, err, "string_container: the given range is invalid")
+
+	_, err = s.GetRange(-1, -2)
+	assert.EqualError(t, err, "string_container: the given range is invalid")
+}
+
 func testIntOperations(t *testing.T, number int64) bool {
 	str := NewString(fmt.Sprintf("%d", number))
 	if !testStringEqualInt(t, str, number) {

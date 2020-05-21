@@ -1,9 +1,6 @@
 package main
 
-import (
-	"fmt"
-	"hash/fnv"
-)
+import "fmt"
 
 const banner string = `
 ===================================================================
@@ -23,12 +20,9 @@ const banner string = `
 ===================================================================
 `
 
-func newHash(s string) uint64 {
-	hash := fnv.New64a()
-	_, _ = hash.Write([]byte(s))
-	return hash.Sum64()
-}
-
 func main() {
-	fmt.Println(newHash("8yn0iYCKYHlIj4-BwPqk"), newHash("GReLUrM4wMqfg9yzV3KQ"))
+	s1 := "0123456789"
+
+	fmt.Println(s1[0:1])
+	fmt.Println(s1[1:5])
 }

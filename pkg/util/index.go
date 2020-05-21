@@ -29,6 +29,7 @@ func (i *Index) Resolve(size int) int {
 	if index < 0 || index >= size {
 		return -1
 	}
+
 	return index
 }
 

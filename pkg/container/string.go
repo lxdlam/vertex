@@ -4,14 +4,21 @@ import (
 	"errors"
 	"hash/fnv"
 
+	"github.com/lxdlam/vertex/pkg/util"
+
 	"github.com/lxdlam/vertex/pkg/protocol"
 )
 
 var (
 	dummy = NewString("dummy string")
 
+	nilString = NewString("")
+
 	// ErrNotAInt will be raised if invoke Int() on a string object that cannot be cast to a string
 	ErrNotAInt = errors.New("string_container: cannot cast the value to a string")
+
+	// ErrRangeInvalid will be raised in GetRange if the given range is invalid
+	ErrRangeInvalid = errors.New("string_container: the given range is invalid")
 )
 
 // StringContainer for containers, which is just a simple type alias
@@ -140,6 +147,22 @@ func (s *StringContainer) Decrease(decrement int64) (int64, error) {
 	}
 
 	return 0, ErrNotAInt
+}
+
+// CompareTo will compare the string itself by the lexical order.
+func (s *StringContainer) CompareTo(another *StringContainer) int {
+	return util.LexicalCompare(s.data, another.data)
+}
+
+// GetRange will return a new string container that contains the given range. if the range itself is invalid,
+// Err
+func (s *StringContainer) GetRange(start, end int) (*StringContainer, error) {
+	realStart, realEnd := util.NewSlice(start, end).Resolve(s.Len())
+	if realStart == -1 || realEnd == -1 {
+		return nil, ErrRangeInvalid
+	}
+
+	return NewString(s.String()[realStart : realEnd+1]), nil
 }
 
 func (s *StringContainer) isContainer() {}

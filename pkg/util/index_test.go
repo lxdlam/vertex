@@ -237,6 +237,13 @@ func TestSliceResolveResolve(t *testing.T) {
 			-1,
 			-1,
 		},
+		{
+			-10,
+			0,
+			10,
+			0,
+			0,
+		},
 	}
 
 	for idx, testCase := range testCases {

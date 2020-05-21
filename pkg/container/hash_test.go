@@ -90,7 +90,7 @@ func TestHashBasicOperation(t *testing.T) {
 
 	// Set Errors
 	err = h.Set(keys, values[1:])
-	assert.Equal(t, ErrLengthNotMatch, err)
+	assert.Equal(t, ErrHashLengthNotMatch, err)
 }
 
 func TestHashCollisionKeys(t *testing.T) {

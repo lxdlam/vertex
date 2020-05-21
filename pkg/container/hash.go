@@ -6,8 +6,8 @@ import (
 )
 
 var (
-	// ErrLengthNotMatch will be raised if the size of keys and values in SET not equal.
-	ErrLengthNotMatch = errors.New("hash_container: the size of keys and values not equal")
+	// ErrHashLengthNotMatch will be raised if the size of keys and values in SET not equal.
+	ErrHashLengthNotMatch = errors.New("hash_container: the size of keys and values not equal")
 
 	// ErrKeyNotExist will be raised if the key is not exist
 	ErrKeyNotExist = errors.New("hash_container: the key is not exist")
@@ -65,7 +65,7 @@ func (h *hashContainer) Type() ContainerType {
 func (h *hashContainer) Set(keys []*StringContainer, values []*StringContainer) error {
 	l := len(keys)
 	if l != len(values) {
-		return ErrLengthNotMatch
+		return ErrHashLengthNotMatch
 	}
 
 	for i := 0; i < l; i++ {

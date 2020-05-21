@@ -61,6 +61,8 @@ func (s *server) Init(c common.Config) bool {
 	defer func() {
 		if err == nil {
 			common.Debug("initialize server success")
+		} else {
+			common.Fatalf("initialize server error. err=%s", err.Error())
 		}
 	}()
 
@@ -71,7 +73,7 @@ func (s *server) Init(c common.Config) bool {
 
 	s.tcpListener, err = net.ListenTCP("tcp", addr)
 	if err != nil {
-		_ = common.Errorf("init tcp listener failed. addr={%+v}, err={%s}", addr, err.Error())
+		_ = common.Errorf("init tcp listener failed. addr=%+v, err={%s}", addr, err.Error())
 
 		return false
 	}
@@ -129,7 +131,6 @@ func (s *server) Stop() {
 }
 
 func (s *server) newConn(conn net.Conn) {
-
 }
 
 // func (s *server) response(resp Response) {
