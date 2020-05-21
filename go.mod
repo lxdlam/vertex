@@ -3,6 +3,7 @@ module github.com/lxdlam/vertex
 go 1.14
 
 require (
+	github.com/gorilla/websocket v1.4.2 // indirect
 	github.com/pelletier/go-toml v1.7.0
 	github.com/satori/go.uuid v1.2.0
 	github.com/stretchr/testify v1.5.1

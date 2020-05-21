@@ -1,37 +1,28 @@
 package command
 
 import (
+	"errors"
 	"github.com/lxdlam/vertex/pkg/protocol"
 )
 
+var (
+	// ErrCommandNotExist will be raised if the command is not exist
+	ErrCommandNotExist = errors.New("command: command not exist")
+
+	// ErrArgumentInvalid will be raised if the Validate call by the command
+	ErrArgumentInvalid = errors.New("command: the argument is invalid")
+)
+
+var keyMap map[string]func(int, []*protocol.RedisObject) Command
+
 type Command interface {
 	Name() string
-	SetArguments([]*protocol.RedisObject)
-	Execute(string) (protocol.RedisObject, error)
+	ParseArguments(int, []*protocol.RedisObject) (bool, error)
+
 	ToLog() string
-	Validate() bool
 }
 
-type OperationCommand interface {
-	Command
+// NewCommand
+func NewCommand(key string, arguments []*protocol.RedisObject) (Command, error) {
 
-	Key() string
-	Arguments() []*protocol.RedisObject
-}
-
-type ModifyCommand interface {
-	OperationCommand
-
-	GenCancelCommand() Command
-}
-
-type AccessCommand interface {
-	OperationCommand
-}
-
-var keyMap = map[string]func([]*protocol.RedisObject) Command{
-}
-
-type CommandFactory interface {
-	NewCommand(string, []*protocol.RedisObject) (Command, error)
 }
