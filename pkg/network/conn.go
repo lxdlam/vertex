@@ -70,7 +70,7 @@ func (c *conn) Read() (protocol.RedisObject, error) {
 	c.resetChan <- 0
 
 	var buf bytes.Buffer
-	// 1M buffer
+	// TODO: read the redis source here to behave properly instead of just reading a 1M buffer
 	readBuf := make([]byte, 1024*1024)
 
 	_, err := c.tcpConn.Read(readBuf)

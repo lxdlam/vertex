@@ -173,23 +173,19 @@ func parseResponse(data types.DataMap) (id string, obj protocol.RedisObject, ok 
 	i, ok := data.Get("id")
 	if !ok {
 		return
-	} else {
-		id, ok = i.(string)
-		if !ok {
-			return
-		}
+	}
+
+	id, ok = i.(string)
+	if !ok {
+		return
 	}
 
 	response, ok := data.Get("response")
 	if !ok {
 		return
-	} else {
-		obj, ok = response.(protocol.RedisObject)
-		if !ok {
-			return
-		}
 	}
 
+	obj, ok = response.(protocol.RedisObject)
 	return
 }
 
