@@ -15,9 +15,9 @@ func LexicalCompare(lhs, rhs string) int {
 
 	for idx := 0; idx < length; idx++ {
 		if lhs[idx] < rhs[idx] {
-			return -idx-1
+			return -idx - 1
 		} else if lhs[idx] > rhs[idx] {
-			return idx+1
+			return idx + 1
 		}
 	}
 

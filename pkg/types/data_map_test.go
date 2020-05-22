@@ -35,11 +35,11 @@ func TestLockedDataMap(t *testing.T) {
 	}
 
 	if !testBasicOperation(m, t) {
-		t.Fatal("test basic operation for LockedDataMap failed!")
+		t.Fatal("test basic operation for lockedDataMap failed!")
 	}
 
 	if !testSyncOperation(m, t) {
-		t.Fatal("test sync operation for LockedDataMap failed!")
+		t.Fatal("test sync operation for lockedDataMap failed!")
 	}
 }
 
@@ -51,11 +51,11 @@ func TestSyncDataMap(t *testing.T) {
 	}
 
 	if !testBasicOperation(m, t) {
-		t.Fatal("test basic operation for SyncDataMap failed!")
+		t.Fatal("test basic operation for syncDataMap failed!")
 	}
 
 	if !testSyncOperation(m, t) {
-		t.Fatal("test sync operation for SyncDataMap failed!")
+		t.Fatal("test sync operation for syncDataMap failed!")
 	}
 }
 

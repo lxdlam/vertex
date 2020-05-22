@@ -2,8 +2,7 @@ package db
 
 import "github.com/lxdlam/vertex/pkg/container"
 
-type DB interface{
-
+type DB interface {
 }
 
 type db struct {
@@ -12,8 +11,8 @@ type db struct {
 }
 
 func NewDB(index int) DB {
-	return &db {
-		index: index,
+	return &db{
+		index:      index,
 		containers: container.NewContainers(),
 	}
 }

@@ -14,16 +14,16 @@ var (
 	ErrArgumentInvalid = errors.New("command: the argument is invalid")
 )
 
-var keyMap map[string]func(int, []*protocol.RedisObject) Command
+var keyMap map[string]func(int, []protocol.RedisObject) Command
 
 type Command interface {
 	Name() string
-	ParseArguments(int, []*protocol.RedisObject) (bool, error)
+	ParseArguments(int, []protocol.RedisObject) (bool, error)
 
 	ToLog() string
 }
 
 // // NewCommand
-// func NewCommand(key string, arguments []*protocol.RedisObject) (Command, error) {
+// func NewCommand(key string, arguments []protocol.RedisObject) (Command, error) {
 
 // }

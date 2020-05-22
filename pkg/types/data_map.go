@@ -15,67 +15,66 @@ type DataMap interface {
 	Len() int
 }
 
-// SimpleDataMap with no sync operations
-type SimpleDataMap struct {
+type simpleDataMap struct {
 	container map[string]interface{}
 }
 
-// NewSimpleDataMap returns a new SimpleDataMap instance
-func NewSimpleDataMap() *SimpleDataMap {
-	return &SimpleDataMap{
+// NewSimpleDataMap returns a new simpleDataMap instance
+func NewSimpleDataMap() *simpleDataMap {
+	return &simpleDataMap{
 		container: make(map[string]interface{}),
 	}
 }
 
 // Set is a proxy method to map set
-func (sdm *SimpleDataMap) Set(key string, value interface{}) {
+func (sdm *simpleDataMap) Set(key string, value interface{}) {
 	sdm.container[key] = value
 }
 
 // Get is a proxy method to map get
-func (sdm *SimpleDataMap) Get(key string) (interface{}, bool) {
+func (sdm *simpleDataMap) Get(key string) (interface{}, bool) {
 	val, ok := sdm.container[key]
 	return val, ok
 }
 
 // Has returns if there is an item with given key
-func (sdm *SimpleDataMap) Has(key string) bool {
+func (sdm *simpleDataMap) Has(key string) bool {
 	_, ok := sdm.container[key]
 	return ok
 }
 
 // Remove is a proxy method to map delete
-func (sdm *SimpleDataMap) Remove(key string) {
+func (sdm *simpleDataMap) Remove(key string) {
 	delete(sdm.container, key)
 }
 
 // Len returns the size of the container
-func (sdm *SimpleDataMap) Len() int {
+func (sdm *simpleDataMap) Len() int {
 	return len(sdm.container)
 }
 
-// LockedDataMap contains a sync.RWMutex to ensure thread safety
-type LockedDataMap struct {
+// lockedDataMap contains a sync.RWMutex to ensure thread safety
+type lockedDataMap struct {
 	container map[string]interface{}
 	mutex     sync.RWMutex
 }
 
-// NewLockedDataMap returns a new LockedDataMap instance
-func NewLockedDataMap() *LockedDataMap {
-	return &LockedDataMap{
+// NewLockedDataMap returns a new lockedDataMap instance
+func NewLockedDataMap() *lockedDataMap {
+	return &lockedDataMap{
 		container: make(map[string]interface{}),
 	}
 }
 
 // Set is a proxy method to map set with writelock
-func (ldm *LockedDataMap) Set(key string, value interface{}) {
+func (ldm *lockedDataMap) Set(key string, value interface{}) {
 	ldm.mutex.Lock()
 	defer ldm.mutex.Unlock()
 	ldm.container[key] = value
 }
 
 // Get is a proxy method to map get with read lock
-func (ldm *LockedDataMap) Get(key string) (interface{}, bool) {
+func (ldm *lockedDataMap) Get(key string) (interface{}, bool) {
 	ldm.mutex.RLock()
 	defer ldm.mutex.RUnlock()
 	val, ok := ldm.container[key]
@@ -83,7 +82,7 @@ func (ldm *LockedDataMap) Get(key string) (interface{}, bool) {
 }
 
 // Has returns if there is an item with given key with read lock
-func (ldm *LockedDataMap) Has(key string) bool {
+func (ldm *lockedDataMap) Has(key string) bool {
 	ldm.mutex.RLock()
 	defer ldm.mutex.RUnlock()
 	_, ok := ldm.container[key]
@@ -91,34 +90,34 @@ func (ldm *LockedDataMap) Has(key string) bool {
 }
 
 // Remove is a proxy method to map delete with write lock
-func (ldm *LockedDataMap) Remove(key string) {
+func (ldm *lockedDataMap) Remove(key string) {
 	ldm.mutex.Lock()
 	defer ldm.mutex.Unlock()
 	delete(ldm.container, key)
 }
 
 // Len returns the size of the container with read lock
-func (ldm *LockedDataMap) Len() int {
+func (ldm *lockedDataMap) Len() int {
 	ldm.mutex.RLock()
 	defer ldm.mutex.RUnlock()
 	return len(ldm.container)
 }
 
-// SyncDataMap is just a proxy to sync.Map which with higher memory consumption but faster
-// It also contains a size to count the actual size of SyncDataMap
-type SyncDataMap struct {
+// syncDataMap is just a proxy to sync.Map which with higher memory consumption but faster
+// It also contains a size to count the actual size of syncDataMap
+type syncDataMap struct {
 	container sync.Map
 	size      int32
 }
 
-// NewSyncDataMap returns a new SyncDataMap instance
-func NewSyncDataMap() *SyncDataMap {
-	return &SyncDataMap{}
+// NewSyncDataMap returns a new syncDataMap instance
+func NewSyncDataMap() *syncDataMap {
+	return &syncDataMap{}
 }
 
 // Set will do insert and size increment
 // It will do a check if the key is exist to determine if we need to increase the size
-func (sdm *SyncDataMap) Set(key string, value interface{}) {
+func (sdm *syncDataMap) Set(key string, value interface{}) {
 	if !sdm.Has(key) {
 		atomic.AddInt32(&sdm.size, 1)
 	}
@@ -127,19 +126,19 @@ func (sdm *SyncDataMap) Set(key string, value interface{}) {
 }
 
 // Get is a simple proxy to Load
-func (sdm *SyncDataMap) Get(key string) (interface{}, bool) {
+func (sdm *syncDataMap) Get(key string) (interface{}, bool) {
 	return sdm.container.Load(key)
 }
 
 // Has will simply check if the key is exist
-func (sdm *SyncDataMap) Has(key string) bool {
+func (sdm *syncDataMap) Has(key string) bool {
 	_, ok := sdm.container.Load(key)
 	return ok
 }
 
 // Remove will first check if the key is exist
 // Then do remove works, it requires one more read overhead
-func (sdm *SyncDataMap) Remove(key string) {
+func (sdm *syncDataMap) Remove(key string) {
 	if sdm.Has(key) {
 		sdm.container.Delete(key)
 		atomic.AddInt32(&sdm.size, -1)
@@ -147,6 +146,6 @@ func (sdm *SyncDataMap) Remove(key string) {
 }
 
 // Len will load size atomically so it will be safe and fast
-func (sdm *SyncDataMap) Len() int {
+func (sdm *syncDataMap) Len() int {
 	return int(atomic.LoadInt32(&sdm.size))
 }

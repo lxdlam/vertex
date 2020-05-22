@@ -148,6 +148,21 @@ func Errorf(template string, a ...interface{}) error {
 	return fmt.Errorf(template, a...)
 }
 
+// Panic will generate a new panic log into to the logger,
+// and then call a panic() with the given log
+func Panic(log string) {
+	if logger != nil {
+		logger.Panic(log)
+	}
+}
+
+// Panicf works like Printf and works same as Panic
+func Panicf(template string, a ...interface{}) {
+	if logger != nil {
+		logger.Panicf(template, a)
+	}
+}
+
 // Fatal will generate a new fatal log into to the logger
 func Fatal(log string) {
 	if logger != nil {

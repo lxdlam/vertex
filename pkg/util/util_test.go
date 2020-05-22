@@ -1,9 +1,10 @@
 package util_test
 
 import (
+	"testing"
+
 	. "github.com/lxdlam/vertex/pkg/util"
 	"github.com/stretchr/testify/assert"
-	"testing"
 )
 
 func TestLexicalCompare(t *testing.T) {

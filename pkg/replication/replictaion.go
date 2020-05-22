@@ -1,9 +1,10 @@
 package replication
 
 import (
+	"net"
+
 	"github.com/gorilla/websocket"
 	"github.com/lxdlam/vertex/pkg/util"
-	"net"
 )
 
 type ReplicationCenter interface {

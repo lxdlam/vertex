@@ -1,6 +1,11 @@
 package main
 
-import "fmt"
+import (
+	"github.com/lxdlam/vertex/pkg/common"
+	"github.com/lxdlam/vertex/pkg/concurrency"
+	"github.com/lxdlam/vertex/pkg/network"
+	"github.com/lxdlam/vertex/pkg/types"
+)
 
 const banner string = `
 ===================================================================
@@ -20,9 +25,30 @@ const banner string = `
 ===================================================================
 `
 
-func main() {
-	s1 := "0123456789"
+func startDummyListener() {
+	receiver, _ := concurrency.GetEventBus().Subscribe("request", "dummy")
 
-	fmt.Println(s1[0:1])
-	fmt.Println(s1[1:5])
+	for {
+		e, _ := receiver.Receive()
+
+		d := e.Data().(types.DataMap)
+		resp, _ := d.Get("request")
+		d.Set("response", resp)
+
+		concurrency.GetEventBus().Publish("response", d, nil)
+	}
+}
+
+func main() {
+	s := network.NewServer()
+	c := common.Config{
+		LogPath:  "./log",
+		LogLevel: "DEBUG",
+		Port:     6789,
+	}
+	s.Init(c)
+
+	go startDummyListener()
+
+	s.Serve()
 }
