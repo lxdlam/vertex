@@ -15,6 +15,8 @@ var (
 
 // StringMap is the global string container data structure interface
 type StringMap interface {
+	ContainerObject
+
 	Set([]*StringContainer, []*StringContainer) error
 	Get([]*StringContainer) []*StringContainer
 
@@ -126,4 +128,14 @@ func (ssm *simpleStringMap) Exist(key *StringContainer) bool {
 	_, exist := ssm.container[key.String()]
 
 	return exist
+}
+
+func (ssm *simpleStringMap) isContainer() {}
+
+func (ssm *simpleStringMap) Key() string {
+	return "global"
+}
+
+func (ssm *simpleStringMap) Type() ContainerType {
+	return GlobalType
 }

@@ -12,6 +12,8 @@ import (
 	"syscall"
 	"time"
 
+	"github.com/lxdlam/vertex/pkg/db"
+
 	"github.com/lxdlam/vertex/pkg/types"
 
 	"github.com/lxdlam/vertex/pkg/common"
@@ -48,6 +50,7 @@ type server struct {
 	responseReceiver concurrency.Receiver
 	cleanUpHandles   []func()
 	clients          sync.Map
+	engine           db.Engine
 }
 
 // NewServer will returns a new server instance
@@ -99,13 +102,12 @@ func (s *server) Init(c common.Config) bool {
 	s.shutChan = make(chan os.Signal)
 	signal.Notify(s.shutChan, syscall.SIGABRT, syscall.SIGTERM, syscall.SIGKILL)
 
+	s.engine = db.NewEngine()
+
 	return true
 }
 
 func (s *server) Serve() {
-	_, _ = fmt.Fprintf(os.Stderr, "Server is listening on %s\n", s.addr.String())
-	common.Infof("Server is listening on %s", s.addr.String())
-
 	var wg sync.WaitGroup
 	wg.Add(2)
 
@@ -135,6 +137,11 @@ func (s *server) Serve() {
 		s.responseWorker()
 		wg.Done()
 	}()
+
+	go s.engine.Start()
+
+	_, _ = fmt.Fprintf(os.Stderr, "Server is listening on %s\n", s.addr.String())
+	common.Infof("Server is listening on %s", s.addr.String())
 
 	// wait until shutdown
 	wg.Wait()
@@ -244,6 +251,7 @@ func (s *server) clean() {
 	s.eventBus.RemoveTopic("response")
 
 	close(s.shutChan)
+	s.engine.Stop()
 
 	s.clients.Range(func(key, value interface{}) bool {
 		c, ok := value.(conn)

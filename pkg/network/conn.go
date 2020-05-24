@@ -15,6 +15,7 @@ import (
 
 var (
 	defaultExpireTime = 30 * time.Hour
+	closeMessage      = []byte("TTL expired")
 
 	// ErrConnIsClosed will be raised if do any operation on a closed conn
 	ErrConnIsClosed = errors.New("conn: conn is already closed")
@@ -111,6 +112,7 @@ func (c *conn) Write(s string) error {
 
 func (c *conn) Close() error {
 	if atomic.CompareAndSwapInt32(&c.closed, 0, 1) {
+		_, _ = c.tcpConn.Write(closeMessage)
 		// discard all streams
 		_ = c.tcpConn.Close()
 		close(c.closeChan)
