@@ -90,9 +90,7 @@ func init() {
 	keyMap["hget"] = newHashCommand
 	keyMap["hexists"] = newHashCommand
 	keyMap["hdel"] = newHashCommand
-	keyMap["hmset"] = newHashCommand
 	keyMap["hmget"] = newHashCommand
-	keyMap["hincrby"] = newHashCommand
 	keyMap["hkeys"] = newHashCommand
 	keyMap["hvals"] = newHashCommand
 	keyMap["hgetall"] = newHashCommand

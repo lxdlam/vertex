@@ -2,10 +2,11 @@ package command
 
 import (
 	"fmt"
+	"strings"
+
 	"github.com/lxdlam/vertex/pkg/container"
 	"github.com/lxdlam/vertex/pkg/protocol"
 	"github.com/lxdlam/vertex/pkg/util"
-	"strings"
 )
 
 func newListCommand(name string, index int, arguments []protocol.RedisObject) (Command, error) {

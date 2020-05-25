@@ -3,9 +3,10 @@ package main
 import (
 	"bufio"
 	"fmt"
-	"github.com/lxdlam/vertex/cmd/client/internal"
 	"net"
 	"os"
+
+	"github.com/lxdlam/vertex/cmd/client/internal"
 
 	"github.com/lxdlam/vertex/pkg/protocol"
 )

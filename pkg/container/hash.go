@@ -2,7 +2,6 @@ package container
 
 import (
 	"errors"
-	"fmt"
 )
 
 var (
@@ -17,12 +16,10 @@ var (
 type HashContainer interface {
 	ContainerObject
 
-	Set([]*StringContainer, []*StringContainer) error
+	Set([]*StringContainer, []*StringContainer) (int, error)
 	Get([]*StringContainer) []*StringContainer
 	Exists(*StringContainer) bool
-	Del(*StringContainer)
-
-	Increase(*StringContainer, int64) (int64, error)
+	Del([]*StringContainer) int
 
 	Keys() []*StringContainer
 	Values() []*StringContainer
@@ -62,11 +59,13 @@ func (h *hashContainer) Type() ContainerType {
 	return HashType
 }
 
-func (h *hashContainer) Set(keys []*StringContainer, values []*StringContainer) error {
+func (h *hashContainer) Set(keys []*StringContainer, values []*StringContainer) (int, error) {
 	l := len(keys)
 	if l != len(values) {
-		return ErrHashLengthNotMatch
+		return 0, ErrHashLengthNotMatch
 	}
+
+	before := h.Len()
 
 	for i := 0; i < l; i++ {
 		if entry, ok := h.container[keys[i].String()]; !ok {
@@ -79,7 +78,7 @@ func (h *hashContainer) Set(keys []*StringContainer, values []*StringContainer) 
 		}
 	}
 
-	return nil
+	return h.Len() - before, nil
 }
 
 func (h *hashContainer) Get(keys []*StringContainer) []*StringContainer {
@@ -102,23 +101,17 @@ func (h *hashContainer) Exists(key *StringContainer) bool {
 	return ret
 }
 
-func (h *hashContainer) Del(key *StringContainer) {
-	delete(h.container, key.String())
-}
+func (h *hashContainer) Del(keys []*StringContainer) int {
+	removed := 0
 
-func (h *hashContainer) Increase(key *StringContainer, increment int64) (int64, error) {
-	entry, ok := h.container[key.String()]
-	if !ok {
-		return 0, ErrKeyNotExist
+	for _, key := range keys {
+		if _, ok := h.container[key.String()]; ok {
+			delete(h.container, key.String())
+			removed++
+		}
 	}
 
-	ret, err := entry.value.Increase(increment)
-
-	if err != nil {
-		return 0, fmt.Errorf("hash_container: increase with error. err={%w}", err)
-	}
-
-	return ret, nil
+	return removed
 }
 
 func (h *hashContainer) Keys() []*StringContainer {

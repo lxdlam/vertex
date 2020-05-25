@@ -4,11 +4,12 @@ import (
 	"bufio"
 	"errors"
 	"fmt"
-	"github.com/lxdlam/vertex/pkg/common"
 	"io"
 	"net"
 	"sync/atomic"
 	"time"
+
+	"github.com/lxdlam/vertex/pkg/common"
 
 	"github.com/lxdlam/vertex/pkg/protocol"
 	"github.com/lxdlam/vertex/pkg/util"

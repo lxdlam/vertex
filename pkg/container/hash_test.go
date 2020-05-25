@@ -13,6 +13,8 @@ const (
 	defaultHashTestCase = 100
 )
 
+// TODO: We may test the result of set?
+
 func TestHashBasicOperation(t *testing.T) {
 	h := NewHashContainer("test")
 
@@ -37,7 +39,7 @@ func TestHashBasicOperation(t *testing.T) {
 		}
 	}
 
-	err := h.Set(keys, values)
+	_, err := h.Set(keys, values)
 	assert.Nil(t, err)
 
 	// Get
@@ -89,7 +91,7 @@ func TestHashBasicOperation(t *testing.T) {
 	}
 
 	// Set Errors
-	err = h.Set(keys, values[1:])
+	_, err = h.Set(keys, values[1:])
 	assert.Equal(t, ErrHashLengthNotMatch, err)
 }
 
@@ -100,7 +102,7 @@ func TestHashCollisionKeys(t *testing.T) {
 		h := NewHashContainer("test")
 		keys := []*StringContainer{NewString(entry.a), NewString(entry.b)}
 
-		err := h.Set(keys, values)
+		_, err := h.Set(keys, values)
 		assert.Nil(t, err)
 
 		assert.Equal(t, 2, h.Len())
@@ -114,7 +116,7 @@ func TestHashIncrease(t *testing.T) {
 	keys := []*StringContainer{NewString("string"), NewString("int")}
 	values := []*StringContainer{NewString("abc"), NewString("1")}
 
-	err := h.Set(keys, values)
+	_, err := h.Set(keys, values)
 	assert.Nil(t, err)
 
 	// Increase int
@@ -146,7 +148,7 @@ func TestHashExtract(t *testing.T) {
 	_, keys := genRandomCase(defaultHashTestCase)
 	_, values := genRandomCase(defaultHashTestCase)
 
-	err := h.Set(keys, values)
+	_, err := h.Set(keys, values)
 	assert.Nil(t, err)
 
 	extractKeys := h.Keys()
@@ -176,7 +178,7 @@ func TestHashKeyLen(t *testing.T) {
 		values = append(values, NewString(genRandomString(idx+1)))
 	}
 
-	err := h.Set(keys, values)
+	_, err := h.Set(keys, values)
 	assert.Nil(t, err)
 
 	util.GetGlobalRandom().Shuffle(defaultHashTestCase, func(i, j int) {

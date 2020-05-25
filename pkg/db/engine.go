@@ -3,9 +3,10 @@ package db
 import (
 	"errors"
 	"fmt"
-	"github.com/lxdlam/vertex/pkg/container"
 	"reflect"
 	"sync"
+
+	"github.com/lxdlam/vertex/pkg/container"
 
 	"github.com/lxdlam/vertex/pkg/command"
 	"github.com/lxdlam/vertex/pkg/common"
@@ -177,7 +178,7 @@ func handleError(err error) protocol.RedisError {
 		return protocol.NewRedisError("ERR invalid argument")
 	} else if errors.Is(err, container.ErrNotAInt) {
 		return protocol.NewRedisError("ERR value is not an integer or out of range")
-	} else if errors.Is(err, command.ErrNoSuchKey){
+	} else if errors.Is(err, command.ErrNoSuchKey) {
 		return protocol.NewRedisError("ERR no such key")
 	} else if errors.Is(err, container.ErrOutOfRange) {
 		return protocol.NewRedisError("ERR index out of range")

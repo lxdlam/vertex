@@ -4,8 +4,8 @@ package container
 type SetContainer interface {
 	ContainerObject
 
-	Add([]*StringContainer)
-	Delete([]*StringContainer)
+	Add([]*StringContainer) int
+	Delete([]*StringContainer) int
 	IsMember(*StringContainer) bool
 
 	Members() []*StringContainer
@@ -42,16 +42,30 @@ func (sc *setContainer) Type() ContainerType {
 	return SetType
 }
 
-func (sc *setContainer) Add(s []*StringContainer) {
+func (sc *setContainer) Add(s []*StringContainer) int {
+	var added int
+
 	for _, item := range s {
-		sc.container[item.String()] = item
+		if _, ok := sc.container[item.String()]; !ok {
+			sc.container[item.String()] = item
+			added++
+		}
 	}
+
+	return added
 }
 
-func (sc *setContainer) Delete(s []*StringContainer) {
+func (sc *setContainer) Delete(s []*StringContainer) int {
+	var removed int
+
 	for _, item := range s {
-		delete(sc.container, item.String())
+		if _, ok := sc.container[item.String()]; ok {
+			delete(sc.container, item.String())
+			removed++
+		}
 	}
+
+	return removed
 }
 
 func (sc *setContainer) IsMember(s *StringContainer) bool {
