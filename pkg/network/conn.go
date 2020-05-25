@@ -4,6 +4,7 @@ import (
 	"bufio"
 	"errors"
 	"fmt"
+	"github.com/lxdlam/vertex/pkg/common"
 	"io"
 	"net"
 	"sync/atomic"
@@ -64,6 +65,8 @@ func NewConnWithExpire(tcpConn net.Conn, expireTime time.Duration) Conn {
 		closeChan:  make(chan struct{}),
 	}
 
+	common.Infof("client %s is join", c.Addr())
+
 	c.startExpireWorker()
 
 	return c
@@ -75,6 +78,11 @@ func (c *conn) Read() (protocol.RedisObject, error) {
 	obj, err := c.reader.ReadObject()
 
 	if errors.Is(err, io.EOF) {
+		go func() {
+			if !c.IsClosed() {
+				_ = c.Close()
+			}
+		}()
 		return nil, ErrConnIsClosed
 	} else if err != nil {
 		return nil, fmt.Errorf("conn: read with unexpected error. conn.id=%s, conn.tcpConn.addr=%s, err={%w}", c.id, c.addr, err)

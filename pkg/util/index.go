@@ -57,11 +57,16 @@ func (s *Slice) ResolveRaw(size int) (int, int) {
 //    - The left is larger than right, e.g., [10, 5]
 //    - One of the index is out of range, e.g., the length is 10 but the segment is [20, 30]
 // If the slice is considered invalid, (-1, -1) will be returned.
+// Notice, if left in the range but right is out of range, right will be adjust to size - 1.
 func (s *Slice) Resolve(size int) (int, int) {
 	left, right := s.ResolveRaw(size)
 
-	if left < 0 || right < 0 || left >= size || right >= size || left > right {
+	if left < 0 || right < 0 || left >= size || left > right {
 		return -1, -1
+	}
+
+	if right >= size {
+		right = size - 1
 	}
 
 	return left, right

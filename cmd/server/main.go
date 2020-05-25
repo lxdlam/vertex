@@ -29,7 +29,7 @@ const banner string = `
 func main() {
 	s := network.NewServer()
 	c := common.Config{
-		LogPath:  "./log",
+		LogPath:  "./vertex.log",
 		LogLevel: "DEBUG",
 		Port:     6789,
 	}

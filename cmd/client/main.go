@@ -29,7 +29,7 @@ func main() {
 		}
 
 		s := scanner.Text()
-		if s == "EXIT" {
+		if s == "QUIT" || s == "quit" {
 			break
 		}
 
@@ -48,7 +48,7 @@ func main() {
 		obj, err := protocol.Parse(bufio.NewReader(c))
 		if err != nil {
 			fmt.Printf("Read from server meets an error! addr=%s, err=%+v\n", c.RemoteAddr().String(), err)
-			continue
+			os.Exit(1)
 		}
 
 		fmt.Printf("%s\n", internal.FormatOutput(obj))

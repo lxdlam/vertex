@@ -31,7 +31,7 @@ type ListContainer interface {
 	Insert(*StringContainer, *StringContainer, bool) (int, error)
 	Set(int, *StringContainer) error
 
-	Remove(int) error
+	Remove(int, *StringContainer) int
 	Trim(int, int) error
 
 	Index(int) (*StringContainer, error)
@@ -100,16 +100,58 @@ func deleteNode(n *listNode) (*StringContainer, error) {
 	return data, nil
 }
 
+func (l *linkedList) deleteFromHead(count int, key *StringContainer) int {
+	removed := 0
+
+	if count == 0 {
+		count = l.size
+	}
+
+	cur := l.head
+
+	for cur != l.tail && removed < count {
+		if cur.data.Equals(key) {
+			tmp := cur
+			cur = cur.next
+			_, _ = deleteNode(tmp)
+			removed++
+		} else {
+			cur = cur.next
+		}
+	}
+
+	return removed
+}
+
+func (l *linkedList) deleteFromTail(count int, key *StringContainer) int {
+	removed := 0
+
+	cur := l.tail
+
+	for cur != l.head && removed < count {
+		if cur.data.Equals(key) {
+			tmp := cur
+			cur = cur.prev
+			_, _ = deleteNode(tmp)
+			removed++
+		} else {
+			cur = cur.prev
+		}
+	}
+
+	return removed
+}
+
 func (l *linkedList) extract(index int) *listNode {
 	normIndex := util.NewIndex(index).Resolve(l.size)
 
 	if normIndex != -1 {
 		cur := l.head
-		for idx := -1; idx <= normIndex; idx++ {
+		for idx := -1; idx < normIndex; idx++ {
 			cur = cur.next
 		}
 
-		return cur.next
+		return cur
 	}
 
 	return nil
@@ -268,17 +310,17 @@ func (l *linkedList) Set(index int, data *StringContainer) error {
 	return nil
 }
 
-func (l *linkedList) Remove(index int) error {
-	n := l.extract(index)
-
-	if n == nil {
-		return ErrOutOfRange
+func (l *linkedList) Remove(count int, key *StringContainer) int {
+	var removed int
+	if count >= 0 {
+		removed = l.deleteFromHead(count, key)
+	} else {
+		removed = l.deleteFromTail(-count, key)
 	}
 
-	_, _ = deleteNode(n)
-	l.size--
+	l.size -= removed
 
-	return nil
+	return removed
 }
 
 func (l *linkedList) Index(index int) (*StringContainer, error) {

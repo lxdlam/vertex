@@ -70,6 +70,10 @@ func (c *containers) GetList(key string) ListContainer {
 }
 
 func (c *containers) GetOrCreateList(key string) ListContainer {
+	if key == "" {
+		return nil
+	}
+
 	l, ok := c.lists[key]
 
 	if !ok {
@@ -91,6 +95,10 @@ func (c *containers) GetHash(key string) HashContainer {
 }
 
 func (c *containers) GetOrCreateHash(key string) HashContainer {
+	if key == "" {
+		return nil
+	}
+
 	h, ok := c.hashes[key]
 
 	if !ok {
@@ -112,6 +120,10 @@ func (c *containers) GetSet(key string) SetContainer {
 }
 
 func (c *containers) GetOrCreateSet(key string) SetContainer {
+	if key == "" {
+		return nil
+	}
+
 	s, ok := c.sets[key]
 
 	if !ok {

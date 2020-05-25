@@ -17,7 +17,7 @@ func TestSuccessParses(t *testing.T) {
 		"*-1\r\n",                     // NullArray
 		"+OK\r\n",                     // SimpleString
 		"-Error Message\r\n",          // Error
-		":1000\r\n",                   // Intgers
+		":1000\r\n",                   // Integers
 		":0\r\n",                      // Zero
 		":-10000\r\n",                 // Negative integers
 		"$14\r\nHello \rWorld!\n\r\n", // Bulk String

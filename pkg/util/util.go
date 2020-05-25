@@ -1,5 +1,7 @@
 package util
 
+import "strconv"
+
 // LexicalCompare takes two string, `lhs` and `rhs`, to compare them. If `lhs` < `rhs`, it will return `-idx`,
 // else if `lhs` > `rhs`, it will return `idx`. If the two string are equal, it will return 0.
 // `idx` here is the first words occurs not equal and where we can decide the order, note the
@@ -28,4 +30,8 @@ func LexicalCompare(lhs, rhs string) int {
 	}
 
 	return rhsLen
+}
+
+func ParseInt64(s string) (int64, error) {
+	return strconv.ParseInt(s, 10, 64)
 }

@@ -164,7 +164,10 @@ func (s *server) newConn(conn net.Conn) {
 	go func() {
 		for {
 			request, err := c.Read()
-			if err != nil {
+			if errors.Is(err, ErrConnIsClosed) {
+				common.Infof("client %s is leaving", c.Addr())
+				return
+			} else if err != nil {
 				common.Warnf("server: new conn with error. addr=%s, err=%s", c.Addr(), err.Error())
 				return
 			}
@@ -214,11 +217,6 @@ Outer:
 					common.Warnf("unexpected error. event_id=%s, err=%+v", event.ID(), err)
 					break
 				}
-			}
-
-			if err := event.Error(); err != nil {
-				common.Warnf("received and error when receive a new event. event_id=%s, err=%+v", event.ID(), err)
-				break
 			}
 
 			data, ok := event.Data().(types.DataMap)

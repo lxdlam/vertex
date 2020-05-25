@@ -3,6 +3,7 @@ package db
 import (
 	"errors"
 	"fmt"
+	"github.com/lxdlam/vertex/pkg/container"
 	"reflect"
 	"sync"
 
@@ -97,7 +98,7 @@ func (e *engine) handleRequest(objects []protocol.RedisObject) (protocol.RedisOb
 
 	c, err := command.NewCommand(name, 1, objects[1:])
 
-	if err != nil {
+	if err != nil || c == nil {
 		return nil, fmt.Errorf("new commond error, name=%s, index=1, error={%w}", name, err)
 	}
 
@@ -154,7 +155,7 @@ Outer:
 			ret, err := e.handleRequest(objects)
 
 			if err != nil {
-				responseMap.Set("response", protocol.NewRedisError("vertex server internal error"))
+				responseMap.Set("response", handleError(err))
 			} else {
 				responseMap.Set("response", ret)
 			}
@@ -166,4 +167,23 @@ Outer:
 
 func (e *engine) Stop() {
 	close(e.shutChan)
+}
+
+func handleError(err error) protocol.RedisError {
+	common.Debugf("engine handle request error. err={%+v}", err)
+	if errors.Is(err, command.ErrCommandNotExist) {
+		return protocol.NewRedisError("ERR no such command")
+	} else if errors.Is(err, command.ErrArgumentInvalid) {
+		return protocol.NewRedisError("ERR invalid argument")
+	} else if errors.Is(err, container.ErrNotAInt) {
+		return protocol.NewRedisError("ERR value is not an integer or out of range")
+	} else if errors.Is(err, command.ErrNoSuchKey){
+		return protocol.NewRedisError("ERR no such key")
+	} else if errors.Is(err, container.ErrOutOfRange) {
+		return protocol.NewRedisError("ERR index out of range")
+	}
+
+	// TODO: do not send raw error
+	return protocol.NewRedisError(fmt.Sprintf("ERR vertex server internal error, err=%+v", err))
+
 }

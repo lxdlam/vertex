@@ -21,7 +21,7 @@ type StringMap interface {
 	Get([]*StringContainer) []*StringContainer
 
 	StringLen(*StringContainer) (int, error)
-	Append(*StringContainer, *StringContainer) error
+	Append(*StringContainer, *StringContainer) int
 
 	Increase(*StringContainer, int64) (int64, error)
 	Decrease(*StringContainer, int64) (int64, error)
@@ -30,7 +30,7 @@ type StringMap interface {
 
 	Len() int
 
-	Exist(*StringContainer) bool
+	Exists([]*StringContainer) int
 }
 
 // NewStringMap will return a new global string map instance
@@ -80,8 +80,15 @@ func (ssm *simpleStringMap) StringLen(key *StringContainer) (int, error) {
 	return 0, ErrKeyNotFound
 }
 
-func (ssm *simpleStringMap) Append(key, str *StringContainer) error {
-	panic("implement me")
+func (ssm *simpleStringMap) Append(key, str *StringContainer) int {
+	if entry, ok := ssm.container[key.String()]; !ok {
+		ssm.container[key.String()] = str
+		return str.Len()
+	} else {
+		newStr := entry.Append(str)
+		ssm.container[key.String()] = newStr
+		return newStr.Len()
+	}
 }
 
 func (ssm *simpleStringMap) Increase(key *StringContainer, increment int64) (int64, error) {
@@ -124,10 +131,16 @@ func (ssm *simpleStringMap) Len() int {
 	return len(ssm.container)
 }
 
-func (ssm *simpleStringMap) Exist(key *StringContainer) bool {
-	_, exist := ssm.container[key.String()]
+func (ssm *simpleStringMap) Exists(keys []*StringContainer) int {
+	count := 0
 
-	return exist
+	for _, key := range keys {
+		if _, ok := ssm.container[key.String()]; ok {
+			count++
+		}
+	}
+
+	return count
 }
 
 func (ssm *simpleStringMap) isContainer() {}

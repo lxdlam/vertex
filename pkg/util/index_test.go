@@ -193,14 +193,35 @@ func TestSliceResolveResolve(t *testing.T) {
 			7,
 			7,
 		},
-		// Out of range
 		{
 			3,
 			10,
 			10,
-			-1,
-			-1,
+			3,
+			9,
 		},
+		{
+			-3,
+			-1,
+			16,
+			13,
+			15,
+		},
+		{
+			10,
+			100,
+			16,
+			10,
+			15,
+		},
+		{
+			-10,
+			0,
+			10,
+			0,
+			0,
+		},
+		// Out of range
 		{
 			20,
 			30,
@@ -236,13 +257,6 @@ func TestSliceResolveResolve(t *testing.T) {
 			10,
 			-1,
 			-1,
-		},
-		{
-			-10,
-			0,
-			10,
-			0,
-			0,
 		},
 	}
 

@@ -214,6 +214,30 @@ func TestRange(t *testing.T) {
 	assert.EqualError(t, err, "string_container: the given range is invalid")
 }
 
+func TestRangeSpecialCase(t *testing.T) {
+	str := NewString("This is a string")
+
+	str1, err := str.GetRange(0, 3)
+	assert.Nil(t, err)
+	assert.NotNil(t, str1)
+	assert.Equal(t, "This", str1.String())
+
+	str2, err := str.GetRange(-3, -1)
+	assert.Nil(t, err)
+	assert.NotNil(t, str2)
+	assert.Equal(t, "ing", str2.String())
+
+	str3, err := str.GetRange(0, -1)
+	assert.Nil(t, err)
+	assert.NotNil(t, str3)
+	assert.Equal(t, "This is a string", str3.String())
+
+	str4, err := str.GetRange(10, 100)
+	assert.Nil(t, err)
+	assert.NotNil(t, str4)
+	assert.Equal(t, "string", str4.String())
+}
+
 func testIntOperations(t *testing.T, number int64) bool {
 	str := NewString(fmt.Sprintf("%d", number))
 	if !testStringEqualInt(t, str, number) {

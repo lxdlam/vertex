@@ -112,10 +112,15 @@ func formatInteger(obj protocol.RedisInteger) string {
 }
 
 func formatArray(obj protocol.RedisArray) string {
-	var buf bytes.Buffer
-	for idx, item := range obj.Data() {
-		buf.WriteString(fmt.Sprintf("%d) %s\n", idx+1, FormatOutput(item)))
+	if obj.String() == protocol.NullArrayLiteral {
+		return "(empty list or set)"
 	}
 
-	return buf.String()
+	var ret []string
+
+	for idx, item := range obj.Data() {
+		ret = append(ret, fmt.Sprintf("%d) %s", idx+1, FormatOutput(item)))
+	}
+
+	return strings.Join(ret, "\n")
 }
