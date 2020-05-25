@@ -1,7 +1,7 @@
 package network
 
 import (
-	"bytes"
+	"bufio"
 	"errors"
 	"fmt"
 	"io"
@@ -39,6 +39,7 @@ type conn struct {
 	tcpConn    net.Conn
 	expireTime time.Duration
 	closed     int32
+	reader     protocol.RESPReader
 	resetChan  chan byte
 	closeChan  chan struct{}
 }
@@ -58,6 +59,7 @@ func NewConnWithExpire(tcpConn net.Conn, expireTime time.Duration) Conn {
 		tcpConn:    tcpConn,
 		expireTime: expireTime,
 		closed:     0,
+		reader:     protocol.NewRESPReader(bufio.NewReader(tcpConn)),
 		resetChan:  make(chan byte),
 		closeChan:  make(chan struct{}),
 	}
@@ -70,23 +72,12 @@ func NewConnWithExpire(tcpConn net.Conn, expireTime time.Duration) Conn {
 func (c *conn) Read() (protocol.RedisObject, error) {
 	c.resetChan <- 0
 
-	var buf bytes.Buffer
-	// TODO: read the redis source here to behave properly instead of just reading a 1M buffer
-	readBuf := make([]byte, 1024*1024)
+	obj, err := c.reader.ReadObject()
 
-	_, err := c.tcpConn.Read(readBuf)
 	if errors.Is(err, io.EOF) {
 		return nil, ErrConnIsClosed
 	} else if err != nil {
 		return nil, fmt.Errorf("conn: read with unexpected error. conn.id=%s, conn.tcpConn.addr=%s, err={%w}", c.id, c.addr, err)
-	}
-
-	buf.Write(readBuf)
-
-	obj, err := protocol.Parse(&buf)
-
-	if err != nil {
-		return nil, fmt.Errorf("conn: invalid resp input. conn.id=%s, conn.tcpConn.addr=%s, err={%w}", c.id, c.addr, err)
 	}
 
 	return obj, nil

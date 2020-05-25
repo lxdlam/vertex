@@ -12,6 +12,12 @@ const (
 	delimiter byte = '\n'
 )
 
+// RESPReader interface allow reuse a io.Reader objects to avoid
+// object waste.
+type RESPReader interface {
+	ReadObject() (RedisObject, error)
+}
+
 type respReader struct {
 	reader *bufio.Reader
 	token  string
@@ -158,7 +164,11 @@ func (r *respReader) readObject() (RedisObject, error) {
 	}
 }
 
-// Parse takes an io.Reader and try to parse a RedisObject from it
+func (r *respReader) ReadObject() (RedisObject, error) {
+	return r.readObject()
+}
+
+// Parse takes an io.Reader and try to parse a RedisObject from it.
 //
 // If any error raised, a wrapped ErrInvalidRESP error will be returned
 func Parse(reader io.Reader) (RedisObject, error) {
@@ -167,4 +177,10 @@ func Parse(reader io.Reader) (RedisObject, error) {
 	}
 
 	return r.readObject()
+}
+
+func NewRESPReader(reader io.Reader) RESPReader {
+	return &respReader{
+		reader: bufio.NewReader(reader),
+	}
 }

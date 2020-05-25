@@ -160,7 +160,7 @@ func (g *getCommand) Execute() {
 
 	ret := g.accessObject.(container.StringMap).Get([]*container.StringContainer{container.NewString(g.key)})
 
-	if len(ret) == 1 {
+	if len(ret) == 1 && ret[0] != nil {
 		g.result = protocol.NewBulkRedisString(ret[0].String())
 	} else {
 		g.result = protocol.NewNullBulkRedisString()

@@ -93,7 +93,7 @@ func (e *engine) handleRequest(objects []protocol.RedisObject) (protocol.RedisOb
 		return nil, fmt.Errorf("invalid command name, raw=%+v", objects[0])
 	}
 
-	name := n.String()
+	name := n.Data()
 
 	c, err := command.NewCommand(name, 1, objects[1:])
 

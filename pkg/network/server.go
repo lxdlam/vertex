@@ -63,6 +63,7 @@ func NewServer() Server {
 		responseReceiver: nil,
 		cleanUpHandles:   nil,
 		clients:          sync.Map{},
+		engine:           nil,
 	}
 }
 
@@ -97,6 +98,7 @@ func (s *server) Init(c common.Config) bool {
 	s.responseReceiver, err = s.eventBus.SubscribeWithOptions("response", "server", 100, 10*time.Millisecond)
 	if err != nil {
 		common.Fatalf("Init server in subscribe response channel failed. err=%s", err)
+		return false
 	}
 
 	s.shutChan = make(chan os.Signal)

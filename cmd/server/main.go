@@ -1,6 +1,9 @@
 package main
 
 import (
+	"fmt"
+	"os"
+
 	"github.com/lxdlam/vertex/pkg/common"
 	"github.com/lxdlam/vertex/pkg/network"
 )
@@ -30,7 +33,13 @@ func main() {
 		LogLevel: "DEBUG",
 		Port:     6789,
 	}
-	s.Init(c)
+
+	common.InitLog(c, true)
+
+	if !s.Init(c) {
+		fmt.Fprintln(os.Stderr, "init server failed!")
+		os.Exit(1)
+	}
 
 	s.Serve()
 }
