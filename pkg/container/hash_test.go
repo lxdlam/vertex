@@ -65,7 +65,7 @@ func TestHashBasicOperation(t *testing.T) {
 
 	// Del
 	for idx := 0; idx < defaultHashTestCase; idx++ {
-		h.Del(keys[idx])
+		h.Del([]*StringContainer{keys[idx]})
 		ret := h.Get([]*StringContainer{keys[idx]})
 		assert.Equal(t, 1, len(ret))
 		assert.Nil(t, ret[0])
@@ -78,7 +78,7 @@ func TestHashBasicOperation(t *testing.T) {
 	}
 
 	for idx := 0; idx < defaultHashTestCase; idx++ {
-		h.Del(randomKeys[idx])
+		h.Del([]*StringContainer{randomKeys[idx]})
 		ret := h.Get([]*StringContainer{randomKeys[idx]})
 		assert.Equal(t, 1, len(ret))
 		assert.Nil(t, ret[0])
@@ -109,37 +109,6 @@ func TestHashCollisionKeys(t *testing.T) {
 		getValues := h.Get(keys)
 		assert.ElementsMatch(t, values, getValues)
 	}
-}
-
-func TestHashIncrease(t *testing.T) {
-	h := NewHashContainer("test")
-	keys := []*StringContainer{NewString("string"), NewString("int")}
-	values := []*StringContainer{NewString("abc"), NewString("1")}
-
-	_, err := h.Set(keys, values)
-	assert.Nil(t, err)
-
-	// Increase int
-	dx := util.GetGlobalRandom().Int63()
-	ret, err := h.Increase(keys[1], dx)
-
-	getValues := h.Get([]*StringContainer{keys[1]})
-	assert.Equal(t, 1, len(getValues))
-	assert.Same(t, getValues[0], values[1])
-
-	assert.Nil(t, err)
-	assert.Equal(t, 1+dx, ret)
-	assert.True(t, testStringEqualInt(t, values[1], 1+dx))
-
-	// Increase a string
-	ret, err = h.Increase(keys[0], dx)
-	assert.Equal(t, int64(0), ret)
-	assert.EqualError(t, err, "hash_container: increase with error. err={string_container: cannot cast the value to a string}")
-
-	// Increase a non-exists key
-	ret, err = h.Increase(NewString("foo"), dx)
-	assert.Equal(t, int64(0), ret)
-	assert.Equal(t, ErrKeyNotExist, err)
 }
 
 func TestHashExtract(t *testing.T) {
