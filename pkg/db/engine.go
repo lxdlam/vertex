@@ -3,7 +3,10 @@ package db
 import (
 	"errors"
 	"fmt"
+	"github.com/lxdlam/vertex/pkg/log"
+	"os"
 	"reflect"
+	"strings"
 	"sync"
 
 	"github.com/lxdlam/vertex/pkg/container"
@@ -18,6 +21,7 @@ import (
 type Engine interface {
 	Start()
 	Stop()
+	BuildFromLog([]*log.VertexLog)
 }
 
 // TODO(2020.5.22): currently only one db instance is supported, regardless the value required by client
@@ -26,13 +30,15 @@ type engine struct {
 	requestReceiver concurrency.Receiver
 	eventBus        concurrency.EventBus
 	shutChan        chan struct{}
+	file            *log.PersistentFile
 }
 
 // NewEngine will return a new engine that listens to the requests and post responses
-func NewEngine() Engine {
+func NewEngine(file *os.File) Engine {
 	e := &engine{
 		shutChan: make(chan struct{}),
 		eventBus: concurrency.GetEventBus(),
+		file:     log.NewPersistentFile(file),
 	}
 
 	var err error
@@ -103,6 +109,10 @@ func (e *engine) handleRequest(objects []protocol.RedisObject) (protocol.RedisOb
 		return nil, fmt.Errorf("new commond error, name=%s, index=1, error={%w}", name, err)
 	}
 
+	if c.Type() == command.ModifyCommandType {
+		go e.writeLog(name, 1, objects)
+	}
+
 	db := e.getOrCreateDB(1)
 	db.ExecuteCommand(c)
 
@@ -133,8 +143,12 @@ Outer:
 			}
 
 			if err := event.Error(); err != nil {
-				common.Warnf("received and error when receive a new event. event_id=%s, err=%+v", event.ID(), err)
-				break
+				if errors.Is(err, concurrency.ErrTopicRemoved) {
+					break Outer
+				} else {
+					common.Warnf("unexpected event error. event_id=%s, err=%+v", event.ID(), err)
+					break
+				}
 			}
 
 			data, ok := event.Data().(types.DataMap)
@@ -167,7 +181,73 @@ Outer:
 }
 
 func (e *engine) Stop() {
+	_ = e.file.Flush()
 	close(e.shutChan)
+}
+
+func (e *engine) writeLog(name string, index int, objects []protocol.RedisObject) {
+	if e.file == nil {
+		return
+	}
+
+	vl := log.NewLog(name, index, objects)
+
+	buf, err := log.PackLog(vl)
+	if err != nil {
+		common.Warnf("new log failed. err=%s", err.Error())
+		return
+	}
+
+	n, err := e.file.Write(buf)
+	if n != len(buf) {
+		common.Warnf("not all bytes wrote. n=%d, len(buf)=%d, buf=%+v", n, len(buf), buf)
+		return
+	}
+
+	common.Debugf("write an log success. log=%s", log.FormatLog(vl))
+}
+
+// It will ignore any error, just build the database
+func (e *engine) BuildFromLog(logs []*log.VertexLog) {
+	success := 0
+	common.Info("rebuild database by log start")
+
+	for _, vl := range logs {
+		arguments := convertArguments(vl.Arguments)
+		c, err := command.NewCommand(vl.Name, int(vl.Index), arguments)
+
+		if err != nil || c == nil {
+			common.Warnf("rebuild: new command gives error, log=%s, error={%w}", log.FormatLog(vl), err)
+			continue
+		}
+
+		db := e.getOrCreateDB(int(vl.Index))
+		db.ExecuteCommand(c)
+
+		_, err = c.Result()
+		if err != nil {
+			common.Warnf("rebuild: execute gives error, log=%s, error={%w}", log.FormatLog(vl), err)
+			continue
+		}
+
+		success++
+	}
+
+	common.Infof("rebuild database by log end, success=%d", success)
+}
+
+func convertArguments(s []string) []protocol.RedisObject {
+	var ret []protocol.RedisObject
+
+	for _, item := range s {
+		obj, err := protocol.Parse(strings.NewReader(item))
+		if err != nil {
+			continue
+		}
+		ret = append(ret, obj)
+	}
+
+	return ret
 }
 
 func handleError(err error) protocol.RedisError {
@@ -186,5 +266,4 @@ func handleError(err error) protocol.RedisError {
 
 	// TODO: do not send raw error
 	return protocol.NewRedisError(fmt.Sprintf("ERR vertex server internal error, err=%+v", err))
-
 }

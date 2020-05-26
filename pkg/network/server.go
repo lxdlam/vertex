@@ -1,12 +1,15 @@
 package network
 
 import (
+	"bufio"
 	"errors"
 	"fmt"
+	"github.com/lxdlam/vertex/pkg/log"
 	"net"
 	"os"
 	"os/signal"
 	"reflect"
+	"strings"
 	"sync"
 	"sync/atomic"
 	"syscall"
@@ -45,7 +48,8 @@ type server struct {
 	tcpListener      *net.TCPListener
 	addr             *net.TCPAddr
 	eventBus         concurrency.EventBus
-	shutChan         chan os.Signal
+	sigChan          chan os.Signal
+	shutChan         chan struct{}
 	shutdown         int32
 	responseReceiver concurrency.Receiver
 	cleanUpHandles   []func()
@@ -97,14 +101,20 @@ func (s *server) Init(c common.Config) bool {
 	// Set buffer size to 100
 	s.responseReceiver, err = s.eventBus.SubscribeWithOptions("response", "server", 100, 10*time.Millisecond)
 	if err != nil {
-		common.Fatalf("Init server in subscribe response channel failed. err=%s", err)
+		common.Fatalf("init server in subscribe response channel failed. err=%s", err)
 		return false
 	}
 
-	s.shutChan = make(chan os.Signal)
-	signal.Notify(s.shutChan, syscall.SIGABRT, syscall.SIGTERM, syscall.SIGKILL)
+	s.initEngine(c.DatabaseFile)
 
-	s.engine = db.NewEngine()
+	s.shutChan = make(chan struct{})
+	s.sigChan = make(chan os.Signal)
+	signal.Notify(s.sigChan, syscall.SIGINT, syscall.SIGABRT, syscall.SIGTERM, syscall.SIGKILL)
+
+	go func() {
+		<-s.sigChan
+		s.stop()
+	}()
 
 	return true
 }
@@ -120,11 +130,17 @@ func (s *server) Serve() {
 		for {
 			select {
 			case <-s.shutChan:
+				go s.stop()
 				break Outer
 			default:
 				conn, err := s.tcpListener.Accept()
 				if err != nil {
-					common.Warnf("tcp listen error. err=%s", err)
+					if strings.HasSuffix(err.Error(), "use of closed network connection") {
+						break Outer
+					} else {
+						common.Warnf("tcp listen error. err=%s", err)
+						break
+					}
 				}
 
 				// Start handle new conn
@@ -143,18 +159,16 @@ func (s *server) Serve() {
 	go s.engine.Start()
 
 	_, _ = fmt.Fprintf(os.Stderr, "Server is listening on %s\n", s.addr.String())
-	common.Infof("Server is listening on %s", s.addr.String())
+	common.Infof("server is listening on %s", s.addr.String())
 
 	// wait until shutdown
 	wg.Wait()
 
-	s.clean()
+	s.stop()
 }
 
 func (s *server) Stop() {
-	if atomic.CompareAndSwapInt32(&s.shutdown, 0, 1) {
-		s.shutChan <- syscall.SIGTERM
-	}
+	s.stop()
 }
 
 func (s *server) newConn(conn net.Conn) {
@@ -206,9 +220,20 @@ Outer:
 	for {
 		select {
 		case <-s.shutChan:
+			go s.stop()
 			break Outer
 		default:
 			event, err := s.responseReceiver.Receive()
+
+			eventErr := event.Error()
+			if eventErr != nil {
+				if errors.Is(eventErr, concurrency.ErrTopicRemoved) {
+					break Outer
+				} else {
+					common.Warnf("unexpected event error. event_id=%s, err=%+v", event.ID(), eventErr)
+					break
+				}
+			}
 
 			if err != nil {
 				if errors.Is(err, concurrency.ErrChannelClosed) {
@@ -246,18 +271,46 @@ Outer:
 	}
 }
 
-func (s *server) clean() {
-	s.eventBus.RemoveTopic("request")
-	s.eventBus.RemoveTopic("response")
+func (s *server) stop() {
+	if atomic.CompareAndSwapInt32(&s.shutdown, 0, 1) {
+		s.eventBus.RemoveTopic("request")
+		s.eventBus.RemoveTopic("response")
 
-	close(s.shutChan)
-	s.engine.Stop()
+		_ = s.tcpListener.Close()
 
-	s.clients.Range(func(key, value interface{}) bool {
-		c, ok := value.(conn)
-		if ok {
-			_ = c.Close()
-		}
-		return true
-	})
+		close(s.shutChan)
+		s.engine.Stop()
+
+		s.clients.Range(func(key, value interface{}) bool {
+			c, ok := value.(conn)
+			if ok {
+				_ = c.Close()
+			}
+			return true
+		})
+
+		common.Info("server shutdown")
+	}
+}
+
+func (s *server) initEngine(file string) {
+	f, err := os.OpenFile(file, os.O_RDWR|os.O_APPEND|os.O_CREATE, 0755)
+	if err != nil {
+		common.Warnf("open file failed. file=%s, err=%s", file, err.Error())
+		s.engine = db.NewEngine(nil)
+		return
+	}
+
+	s.engine = db.NewEngine(f)
+
+	reader := bufio.NewReader(f)
+	logs, err := log.ParseLog(reader)
+
+	if err != nil {
+		common.Warnf("parse log failed. file=%s, err=%s", file, err.Error())
+	}
+
+	if len(logs) > 0 {
+		s.engine.BuildFromLog(logs)
+	}
 }

@@ -1,24 +1,15 @@
 syntax = "proto3";
-
-import "google/protobuf/timestamp.proto";
+package vertex;
 
 option go_package = "github.com/lxdlam/vertex/pkg/log";
 
 message VertexLog {
-    enum CommandType {
-        SystemCommand = 0;
-        AccessCommand = 1;
-        ModifyCommand = 2;
-    }
-
-    int64 id = 1;
-    google.protobuf.Timestamp time = 2;
-    CommandType command_type = 3;
+    string id = 1;
+    int64 time = 2;
+    string host = 3;
     string name = 4;
-
     int32 index = 5;
-    string command = 6;
-    string key = 7;
-    repeated string arguments = 8;
-    repeated string raw_request = 9;
+    repeated string arguments = 6; // The arguments are RESP string represent
+
+    string raw_request = 255;
 }

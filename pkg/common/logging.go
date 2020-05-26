@@ -166,6 +166,7 @@ func Panicf(template string, a ...interface{}) {
 // Fatal will generate a new fatal log into to the logger
 func Fatal(log string) {
 	if logger != nil {
+		_, _ = fmt.Fprintln(os.Stderr, "Fatal: "+log)
 		logger.Fatal(log)
 	}
 }
@@ -173,6 +174,7 @@ func Fatal(log string) {
 // Fatalf works like Printf and works same as Fatal
 func Fatalf(template string, a ...interface{}) {
 	if logger != nil {
+		_, _ = fmt.Fprintf(os.Stderr, "Fatal: "+template+"\n", a)
 		logger.Fatalf(template, a)
 	}
 }

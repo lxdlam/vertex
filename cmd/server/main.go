@@ -27,11 +27,14 @@ const banner string = `
 `
 
 func main() {
+	fmt.Println(banner)
+
 	s := network.NewServer()
 	c := common.Config{
-		LogPath:  "./vertex.log",
-		LogLevel: "DEBUG",
-		Port:     6789,
+		LogPath:      "./vertex.log",
+		LogLevel:     "DEBUG",
+		Port:         6789,
+		DatabaseFile: "./database.vpf",
 	}
 
 	common.InitLog(c, true)

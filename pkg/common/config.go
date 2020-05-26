@@ -8,17 +8,19 @@ import (
 
 // Config is a simple struct that contains all necessary options.
 type Config struct {
-	LogPath  string `toml:"log_path"`
-	LogLevel string `toml:"log_level"`
-	Port     int    `toml:"port"`
+	LogPath      string `toml:"log_path"`
+	LogLevel     string `toml:"log_level"`
+	Port         int    `toml:"port"`
+	DatabaseFile string `toml:"database_file"`
 }
 
 // NewConfig will return a config instance with default value
 func NewConfig() *Config {
 	return &Config{
-		LogPath:  "./log/vertex.log",
-		LogLevel: "INFO",
-		Port:     8081,
+		LogPath:      "./log/vertex.log",
+		LogLevel:     "INFO",
+		Port:         8081,
+		DatabaseFile: "",
 	}
 }
 
@@ -27,13 +29,13 @@ func (c *Config) Parse(path string) error {
 	tree, err := toml.LoadFile(path)
 
 	if err != nil {
-		return fmt.Errorf("parse config from file failed%w", err)
+		return fmt.Errorf("parse config from file failed. err={%w}", err)
 	}
 
 	err = tree.Unmarshal(c)
 
 	if err != nil {
-		return fmt.Errorf("parse config from file failed%w", err)
+		return fmt.Errorf("parse config from file failed. err={%w}", err)
 	}
 
 	return nil
