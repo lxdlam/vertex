@@ -5,6 +5,7 @@ import (
 	"errors"
 	"fmt"
 	"github.com/lxdlam/vertex/pkg/log"
+	"github.com/lxdlam/vertex/pkg/replication"
 	"net"
 	"os"
 	"os/signal"
@@ -84,7 +85,7 @@ func (s *server) Init(c common.Config) bool {
 	}()
 
 	s.addr = &net.TCPAddr{
-		IP:   []byte{127, 0, 0, 1},
+		IP:   []byte{0, 0, 0, 0},
 		Port: c.Port,
 	}
 
@@ -105,7 +106,17 @@ func (s *server) Init(c common.Config) bool {
 		return false
 	}
 
-	s.initEngine(c.DatabaseFile)
+	if c.EnableReplica {
+		if c.ReplicaPort <= 0 || c.Port == c.ReplicaPort {
+			s.engine = db.NewEngine(c.Port + 1)
+		} else {
+			s.engine = db.NewEngine(c.ReplicaPort)
+		}
+	} else {
+		s.engine = db.NewEngine(-1)
+	}
+
+	s.syncExternal(c.DatabaseFile, c.MasterAddress)
 
 	s.shutChan = make(chan struct{})
 	s.sigChan = make(chan os.Signal)
@@ -229,9 +240,6 @@ Outer:
 			if eventErr != nil {
 				if errors.Is(eventErr, concurrency.ErrTopicRemoved) {
 					break Outer
-				} else {
-					common.Warnf("unexpected event error. event_id=%s, err=%+v", event.ID(), eventErr)
-					break
 				}
 			}
 
@@ -293,21 +301,52 @@ func (s *server) stop() {
 	}
 }
 
-func (s *server) initEngine(file string) {
-	f, err := os.OpenFile(file, os.O_RDWR|os.O_APPEND|os.O_CREATE, 0755)
+func (s *server) syncExternal(file string, master string) {
+	// Init order: first init file, then master to keep the version match
+	if file != "" {
+		s.fromFile(file)
+
+		// Current implementation depends on a database file
+		if master != "" {
+			s.fromMaster(master)
+		}
+	}
+}
+
+func (s *server) fromMaster(addr string) {
+	conn, err := net.Dial("tcp", addr)
 	if err != nil {
-		common.Warnf("open file failed. file=%s, err=%s", file, err.Error())
-		s.engine = db.NewEngine(nil)
+		common.Warnf("sync with master failed. addr=%s, err=%s", addr, err.Error())
 		return
 	}
 
-	s.engine = db.NewEngine(f)
+	r := replication.NewReplica(conn)
+	logs, err := r.Receive()
 
+	if err != nil {
+		common.Warnf("receive log from master failed. addr=%s, err=%s", addr, err.Error())
+		return // No incomplete log here
+	}
+
+	if len(logs) > 0 {
+		s.engine.BuildFromLog(logs)
+	}
+}
+
+func (s *server) fromFile(file string) {
+	f, err := os.OpenFile(file, os.O_RDWR|os.O_APPEND|os.O_CREATE, 0755)
+	if err != nil {
+		common.Warnf("open file failed. file=%s, err=%s", file, err.Error())
+		return
+	}
+
+	s.engine.SetFile(f, file)
 	reader := bufio.NewReader(f)
 	logs, err := log.ParseLog(reader)
 
 	if err != nil {
 		common.Warnf("parse log failed. file=%s, err=%s", file, err.Error())
+		// May contains incomplete log here, so we not return
 	}
 
 	if len(logs) > 0 {

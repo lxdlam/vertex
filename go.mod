@@ -4,7 +4,6 @@ go 1.14
 
 require (
 	github.com/golang/protobuf v1.4.0
-	github.com/gorilla/websocket v1.4.2
 	github.com/pelletier/go-toml v1.8.0
 	github.com/satori/go.uuid v1.2.0
 	github.com/stretchr/testify v1.5.1

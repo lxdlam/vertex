@@ -6,12 +6,13 @@ import (
 	"encoding/binary"
 	"errors"
 	"fmt"
-	"github.com/golang/protobuf/proto"
-	"github.com/lxdlam/vertex/pkg/protocol"
-	"github.com/lxdlam/vertex/pkg/util"
 	"io"
 	"strconv"
 	"time"
+
+	"github.com/golang/protobuf/proto"
+	"github.com/lxdlam/vertex/pkg/protocol"
+	"github.com/lxdlam/vertex/pkg/util"
 )
 
 var (
@@ -109,18 +110,7 @@ func ParseLog(reader io.Reader) ([]*VertexLog, error) {
 }
 
 func (lr *logReader) readBytes(count int) ([]byte, error) {
-	var ret []byte
-
-	for idx := 0; idx < count; idx++ {
-		b, err := lr.reader.ReadByte()
-		if err != nil {
-			return nil, err
-		}
-
-		ret = append(ret, b)
-	}
-
-	return ret, nil
+	return util.ReadExactBytes(lr.reader, count)
 }
 
 func (lr *logReader) readLog() (*VertexLog, error) {

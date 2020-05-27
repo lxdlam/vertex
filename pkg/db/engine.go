@@ -3,17 +3,18 @@ package db
 import (
 	"errors"
 	"fmt"
-	"github.com/lxdlam/vertex/pkg/log"
+	"github.com/lxdlam/vertex/pkg/replication"
+	"net"
 	"os"
 	"reflect"
 	"strings"
 	"sync"
 
-	"github.com/lxdlam/vertex/pkg/container"
-
 	"github.com/lxdlam/vertex/pkg/command"
 	"github.com/lxdlam/vertex/pkg/common"
 	"github.com/lxdlam/vertex/pkg/concurrency"
+	"github.com/lxdlam/vertex/pkg/container"
+	"github.com/lxdlam/vertex/pkg/log"
 	"github.com/lxdlam/vertex/pkg/protocol"
 	"github.com/lxdlam/vertex/pkg/types"
 )
@@ -21,6 +22,8 @@ import (
 type Engine interface {
 	Start()
 	Stop()
+
+	SetFile(*os.File, string)
 	BuildFromLog([]*log.VertexLog)
 }
 
@@ -31,14 +34,14 @@ type engine struct {
 	eventBus        concurrency.EventBus
 	shutChan        chan struct{}
 	file            *log.PersistentFile
+	master          replication.Master
 }
 
 // NewEngine will return a new engine that listens to the requests and post responses
-func NewEngine(file *os.File) Engine {
+func NewEngine(port int) Engine {
 	e := &engine{
 		shutChan: make(chan struct{}),
 		eventBus: concurrency.GetEventBus(),
-		file:     log.NewPersistentFile(file),
 	}
 
 	var err error
@@ -46,6 +49,14 @@ func NewEngine(file *os.File) Engine {
 	if err != nil {
 		_ = common.Errorf("subscribe to request failed. err={%w}", err)
 		return nil
+	}
+
+	if port > 0 {
+		addr := &net.TCPAddr{
+			IP:   []byte{0, 0, 0, 0},
+			Port: port,
+		}
+		e.master = replication.NewMaster(addr)
 	}
 
 	return e
@@ -125,6 +136,10 @@ func (e *engine) handleRequest(objects []protocol.RedisObject) (protocol.RedisOb
 }
 
 func (e *engine) Start() {
+	if e.master != nil {
+		e.master.Start()
+	}
+
 Outer:
 	for {
 		select {
@@ -181,6 +196,7 @@ Outer:
 }
 
 func (e *engine) Stop() {
+	e.master.Stop()
 	_ = e.file.Flush()
 	close(e.shutChan)
 }
@@ -266,4 +282,12 @@ func handleError(err error) protocol.RedisError {
 
 	// TODO: do not send raw error
 	return protocol.NewRedisError(fmt.Sprintf("ERR vertex server internal error, err=%+v", err))
+}
+
+func (e *engine) SetFile(file *os.File, filePath string) {
+	e.file = log.NewPersistentFile(file)
+
+	if e.master != nil {
+		e.master.SetFile(e.file, filePath)
+	}
 }

@@ -3,7 +3,6 @@ package log
 import (
 	"bufio"
 	"errors"
-	"io"
 	"os"
 	"sync"
 )
@@ -15,7 +14,7 @@ var ErrTargetFileInvalid = errors.New("persistent: target file invalid")
 // all operations can be done safely across goroutines.
 // It warps all bufio.Writer methods with a RWMutex.
 type PersistentFile struct {
-	mutex  sync.RWMutex
+	mutex  *sync.RWMutex
 	file   *os.File
 	writer *bufio.Writer
 }
@@ -23,7 +22,7 @@ type PersistentFile struct {
 // NewPersistentFile will returns a new PersistentFile instance warps the given file.
 func NewPersistentFile(file *os.File) *PersistentFile {
 	return &PersistentFile{
-		mutex:  sync.RWMutex{},
+		mutex:  &sync.RWMutex{},
 		file:   file,
 		writer: bufio.NewWriter(file),
 	}
@@ -81,31 +80,4 @@ func (p *PersistentFile) WriteString(s string) (int, error) {
 	defer p.mutex.Unlock()
 
 	return p.writer.WriteString(s)
-}
-
-
-// SaveTo will copy the current log file into another file.
-// A Flush() will be performed in advance to correctly save the current file.
-func (p *PersistentFile) SaveTo(file *os.File) error {
-	if file == nil {
-		return ErrTargetFileInvalid
-	}
-
-	p.mutex.Lock()
-	defer p.mutex.Unlock()
-
-	// force save file
-	if err := p.writer.Flush(); err != nil {
-		return err
-	}
-
-	r := bufio.NewReader(p.file)
-	w := bufio.NewWriter(file)
-
-	if _, err := io.Copy(w, r); err != nil {
-		return err
-	}
-
-	err := w.Flush()
-	return err
 }

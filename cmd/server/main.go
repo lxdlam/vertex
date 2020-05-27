@@ -31,10 +31,12 @@ func main() {
 
 	s := network.NewServer()
 	c := common.Config{
-		LogPath:      "./vertex.log",
-		LogLevel:     "DEBUG",
-		Port:         6789,
-		DatabaseFile: "./database.vpf",
+		LogPath:       "./vertex.log",
+		LogLevel:      "DEBUG",
+		Port:          6789,
+		DatabaseFile:  "./database.vpf",
+		EnableReplica: true,
+		ReplicaPort:   9999,
 	}
 
 	common.InitLog(c, true)

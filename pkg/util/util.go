@@ -1,6 +1,7 @@
 package util
 
 import (
+	"io"
 	"net"
 	"strconv"
 	"strings"
@@ -95,4 +96,21 @@ func QuoteJoin(s []string, sep string) string {
 	}
 
 	return strings.Join(quoted, sep)
+}
+
+// ReadExactBytes will takes an ByteReader then read exact count bytes to a byte slice.
+// Any error raised by the ByteReader will be directly returned.
+func ReadExactBytes(reader io.ByteReader, count int) ([]byte, error) {
+	var ret []byte
+
+	for idx := 0; idx < count; idx++ {
+		b, err := reader.ReadByte()
+		if err != nil {
+			return nil, err
+		}
+
+		ret = append(ret, b)
+	}
+
+	return ret, nil
 }
