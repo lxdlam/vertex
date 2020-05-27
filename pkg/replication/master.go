@@ -4,15 +4,16 @@ import (
 	"bytes"
 	"encoding/binary"
 	"fmt"
-	"github.com/lxdlam/vertex/pkg/common"
-	"github.com/lxdlam/vertex/pkg/log"
-	"github.com/lxdlam/vertex/pkg/util"
 	"io"
 	"net"
 	"os"
 	"strings"
 	"sync"
 	"sync/atomic"
+
+	"github.com/lxdlam/vertex/pkg/common"
+	"github.com/lxdlam/vertex/pkg/log"
+	"github.com/lxdlam/vertex/pkg/util"
 )
 
 func init() {
@@ -123,7 +124,7 @@ func (m *master) handleConn(conn net.Conn) {
 
 	rawFile, err := os.Open(m.filePath)
 	if err != nil {
-		_ = common.Errorf("open raw file failed. addr=%s, path=%s, raw_path=%s, err=%s", addr, filePath, rawFile, err.Error())
+		_ = common.Errorf("open raw file failed. addr=%s, path=%s, raw_path=%s, err=%s", addr, filePath, m.filePath, err.Error())
 		return
 	}
 

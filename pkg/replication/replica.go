@@ -5,9 +5,10 @@ import (
 	"bytes"
 	"encoding/binary"
 	"errors"
+	"net"
+
 	"github.com/lxdlam/vertex/pkg/log"
 	"github.com/lxdlam/vertex/pkg/util"
-	"net"
 )
 
 var ErrIncompleteMessage = errors.New("replica: incomplete message")

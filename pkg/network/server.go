@@ -4,8 +4,6 @@ import (
 	"bufio"
 	"errors"
 	"fmt"
-	"github.com/lxdlam/vertex/pkg/log"
-	"github.com/lxdlam/vertex/pkg/replication"
 	"net"
 	"os"
 	"os/signal"
@@ -15,6 +13,9 @@ import (
 	"sync/atomic"
 	"syscall"
 	"time"
+
+	"github.com/lxdlam/vertex/pkg/log"
+	"github.com/lxdlam/vertex/pkg/replication"
 
 	"github.com/lxdlam/vertex/pkg/db"
 

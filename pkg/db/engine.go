@@ -3,12 +3,13 @@ package db
 import (
 	"errors"
 	"fmt"
-	"github.com/lxdlam/vertex/pkg/replication"
 	"net"
 	"os"
 	"reflect"
 	"strings"
 	"sync"
+
+	"github.com/lxdlam/vertex/pkg/replication"
 
 	"github.com/lxdlam/vertex/pkg/command"
 	"github.com/lxdlam/vertex/pkg/common"
