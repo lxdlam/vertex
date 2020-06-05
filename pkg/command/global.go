@@ -1,6 +1,7 @@
 package command
 
 import (
+	"errors"
 	"fmt"
 
 	"github.com/lxdlam/vertex/pkg/util"
@@ -791,11 +792,15 @@ func (i *incrCommand) Execute() {
 	if err == nil {
 		ret, i.err = i.accessObject.(container.StringMap).Increase(container.NewString(i.key), increment)
 	} else {
-		i.err = nil
+		i.err = err
 	}
 
 	if i.err == nil {
 		i.result = protocol.NewRedisInteger(ret)
+	} else {
+		if errors.Is(i.err, container.ErrKeyNotFound) {
+			i.err = ErrNoSuchKey
+		}
 	}
 }
 
@@ -894,11 +899,15 @@ func (d *decrCommand) Execute() {
 	if err == nil {
 		ret, d.err = d.accessObject.(container.StringMap).Decrease(container.NewString(d.key), decrement)
 	} else {
-		d.err = nil
+		d.err = err
 	}
 
 	if d.err == nil {
 		d.result = protocol.NewRedisInteger(ret)
+	} else {
+		if errors.Is(d.err, container.ErrKeyNotFound) {
+			d.err = ErrNoSuchKey
+		}
 	}
 }
 
