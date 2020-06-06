@@ -14,7 +14,6 @@ type DB interface {
 type db struct {
 	index      int
 	containers container.Containers
-	shutChan   chan struct{}
 }
 
 func NewDB(index int) DB {

@@ -1,6 +1,7 @@
 package command
 
 import (
+	"errors"
 	"fmt"
 	"strings"
 
@@ -987,6 +988,12 @@ func (l *ltrimCommand) Execute() {
 	}
 
 	l.err = l.accessObject.(container.ListContainer).Trim(l.start, l.end)
+
+	if errors.Is(l.err, container.ErrOutOfRange) {
+		_ = l.accessObject.(container.ListContainer).Trim(0, -1)
+		l.err = nil
+	}
+
 	l.result = protocol.NewSimpleRedisString("OK")
 }
 
@@ -1090,9 +1097,13 @@ func (l *linsertCommand) Execute() {
 		return
 	}
 
-	ret, _ := l.accessObject.(container.ListContainer).Insert(container.NewString(l.pivot.Data()), container.NewString(l.replace.Data()), l.after)
+	ret, err := l.accessObject.(container.ListContainer).Insert(container.NewString(l.pivot.Data()), container.NewString(l.replace.Data()), l.after)
 
-	l.result = protocol.NewRedisInteger(int64(ret))
+	if errors.Is(err, container.ErrNoSuchPivot) {
+		l.result = protocol.NewRedisInteger(-1)
+	} else {
+		l.result = protocol.NewRedisInteger(int64(ret))
+	}
 }
 
 func (l *linsertCommand) Result() (protocol.RedisObject, error) {

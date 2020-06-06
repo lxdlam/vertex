@@ -161,7 +161,7 @@ func (l *linkedList) extract(index int) *listNode {
 func (l *linkedList) extractSegment(left, right int) (*listNode, *listNode) {
 	right = util.NewIndex(right).ResolveRaw(l.size)
 
-	if right > l.size {
+	if right >= l.size {
 		right = l.size - 1
 	}
 
@@ -175,7 +175,9 @@ func (l *linkedList) extractSegment(left, right int) (*listNode, *listNode) {
 		for idx := -1; idx <= normRight; idx++ {
 			if idx == normLeft {
 				leftNode = cur
-			} else if idx == normRight {
+			}
+
+			if idx == normRight {
 				rightNode = cur
 			}
 

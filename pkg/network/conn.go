@@ -16,7 +16,7 @@ import (
 )
 
 var (
-	defaultExpireTime = 30 * time.Hour
+	defaultExpireTime = 10 * time.Minute
 	closeMessage      = []byte("TTL expired")
 
 	// ErrConnIsClosed will be raised if do any operation on a closed conn
